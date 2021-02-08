@@ -157,9 +157,9 @@ classWriter.method(java.lang.String.class, "toString").code(code -> {
 	code.VIRTUAL(java.lang.StringBuilder.class, "append")
 		.reTurn(java.lang.StringBuilder.class)
 		.parameter(int.class).INVOKE();
-	code.LOADConst(", i2=");
 
 	code.LINE(51);
+	code.LOADConst(", i2=");
 	code.VIRTUAL(java.lang.StringBuilder.class, "append")
 		.reTurn(java.lang.StringBuilder.class)
 		.parameter(java.lang.String.class).INVOKE();
@@ -168,9 +168,9 @@ classWriter.method(java.lang.String.class, "toString").code(code -> {
 	code.VIRTUAL(java.lang.StringBuilder.class, "append")
 		.reTurn(java.lang.StringBuilder.class)
 		.parameter(int.class).INVOKE();
-	code.LOADConst(", i3=");
 
 	code.LINE(52);
+	code.LOADConst(", i3=");
 	code.VIRTUAL(java.lang.StringBuilder.class, "append")
 		.reTurn(java.lang.StringBuilder.class)
 		.parameter(java.lang.String.class).INVOKE();
@@ -179,9 +179,9 @@ classWriter.method(java.lang.String.class, "toString").code(code -> {
 	code.VIRTUAL(java.lang.StringBuilder.class, "append")
 		.reTurn(java.lang.StringBuilder.class)
 		.parameter(int.class).INVOKE();
-	code.LOADConst(", i4=");
 
 	code.LINE(53);
+	code.LOADConst(", i4=");
 	code.VIRTUAL(java.lang.StringBuilder.class, "append")
 		.reTurn(java.lang.StringBuilder.class)
 		.parameter(java.lang.String.class).INVOKE();
@@ -190,9 +190,9 @@ classWriter.method(java.lang.String.class, "toString").code(code -> {
 	code.VIRTUAL(java.lang.StringBuilder.class, "append")
 		.reTurn(java.lang.StringBuilder.class)
 		.parameter(int.class).INVOKE();
-	code.LOADConst(", str=");
 
 	code.LINE(54);
+	code.LOADConst(", str=");
 	code.VIRTUAL(java.lang.StringBuilder.class, "append")
 		.reTurn(java.lang.StringBuilder.class)
 		.parameter(java.lang.String.class).INVOKE();
@@ -201,9 +201,9 @@ classWriter.method(java.lang.String.class, "toString").code(code -> {
 	code.VIRTUAL(java.lang.StringBuilder.class, "append")
 		.reTurn(java.lang.StringBuilder.class)
 		.parameter(java.lang.String.class).INVOKE();
-	code.LOADConst("]");
 
 	code.LINE(55);
+	code.LOADConst("]");
 	code.VIRTUAL(java.lang.StringBuilder.class, "append")
 		.reTurn(java.lang.StringBuilder.class)
 		.parameter(java.lang.String.class).INVOKE();

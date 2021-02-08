@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>tinyasm</groupId>
+	<artifactId>tinyasm-tool</artifactId>
+	<version>${tinyasm.version}</version>
+	<name>tinyasm-tool</name>
+	<description>tinyasm-tool</description>
+
+	<properties>
+		<!-- Startup class -->
+		<jacoco.version>0.8.6</jacoco.version>
+		<junit.version>4.13.1</junit.version>
+		<tinyasm.version>0.1.1-SNAPSHOT</tinyasm.version>
+		<slf4j.version>1.7.25</slf4j.version>
+		<mockito.version>1.10.19</mockito.version>
+		<guava.version>19.0</guava.version>
+		<asm.version>6.2</asm.version>
+		<log4j.version>2.14.0</log4j.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.test.skip>false</maven.test.skip>
+		<compiler.compilerArgument></compiler.compilerArgument>
+	</properties>
+
+	<dependencies>
+		<!-- LOG -->
+		<!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>${slf4j.version}</version>
+		</dependency>
+		<!-- test -->
+		<!-- https://mvnrepository.com/artifact/junit/junit -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>${junit.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-all</artifactId>
+			<version>${mockito.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<!-- ASM -->
+		<!-- https://mvnrepository.com/artifact/org.ow2.asm/asm -->
+		<dependency>
+			<groupId>org.ow2.asm</groupId>
+			<artifactId>asm</artifactId>
+			<version>${asm.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.ow2.asm</groupId>
+			<artifactId>asm-commons</artifactId>
+			<version>${asm.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.ow2.asm</groupId>
+			<artifactId>asm-util</artifactId>
+			<version>${asm.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+		    <groupId>org.apache.logging.log4j</groupId>
+		    <artifactId>log4j-core</artifactId>
+			<version>${log4j.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>${slf4j.version}</version>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.8.1</version>
+				<configuration>
+					<skipMain>false</skipMain>
+					<skip>false</skip>
+					<encoding>${project.build.sourceEncoding}</encoding>
+					<source>1.9</source>
+					<target>1.9</target>
+					<compilerArgument>${compiler.compilerArgument}</compilerArgument>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>${jacoco.version}</version>
+				<executions>
+					<execution>
+						<id>prepare-agent</id>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>report</id>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>post-unit-test</id>
+						<phase>test</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+						<configuration>
+							<!-- Sets the path to the file which contains the execution data. -->
+
+							<dataFile>target/jacoco.exec</dataFile>
+							<!-- Sets the output directory for the code coverage report. -->
+							<outputDirectory>target/jacoco-ut</outputDirectory>
+						</configuration>
+					</execution>
+				</executions>
+				<configuration>
+					<systemPropertyVariables>
+						<jacoco-agent.destfile>target/jacoco.exec</jacoco-agent.destfile>
+					</systemPropertyVariables>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<profiles>
+		<profile>
+			<id>deploy</id>
+			<properties>
+				<compiler.compilerArgument>-g:none</compiler.compilerArgument>
+			</properties>
+		</profile>
+	</profiles>
+
+</project>

@@ -24,8 +24,18 @@
 		<maven.test.skip>false</maven.test.skip>
 		<compiler.compilerArgument></compiler.compilerArgument>
 	</properties>
-
+	<repositories>
+		<repository>
+		    <id>jitpack.io</id>
+		    <url>https://jitpack.io</url>
+		</repository>
+	</repositories>
 	<dependencies>
+	<dependency>
+	    <groupId>com.github.ByronWang</groupId>
+	    <artifactId>tinyasm-core</artifactId>
+	    <version>0.2.0</version>
+	</dependency>
 		<!-- LOG -->
 		<!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
 		<dependency>
@@ -64,7 +74,6 @@
 			<groupId>org.ow2.asm</groupId>
 			<artifactId>asm-util</artifactId>
 			<version>${asm.version}</version>
-			<scope>test</scope>
 		</dependency>
 		<dependency>
 		    <groupId>org.apache.logging.log4j</groupId>

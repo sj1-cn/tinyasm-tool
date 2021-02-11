@@ -183,7 +183,12 @@ public class TinyASMifier extends Printer {
 		text.add("import nebula.tinyasm.ClassBody;\n");
 		text.add("import nebula.tinyasm.ClassBuilder;\n");
 		text.add("import nebula.tinyasm.MethodCode;\n");
+		text.add("import org.objectweb.asm.Type;\n");
+
 		text.add("import static org.objectweb.asm.Opcodes.*;\n");
+
+		text.add("import nebula.tinyasm.Clazz;\n");
+		text.add("@SuppressWarnings(\"unused\")\n");
 
 		text.add("public class " + simpleName + "TinyAsmDump {\n\n");
 		text.add("public static byte[] dump () throws Exception {\n\n");
@@ -376,30 +381,58 @@ public class TinyASMifier extends Printer {
 	public TinyASMifier visitField(final int access, final String name, final String descriptor, final String signature, final Object value) {
 //		classWriter.field("i", int.class);
 		stringBuilder.setLength(0);
-		stringBuilder.append("classWriter.field(");
+		if ((access & ACC_STATIC) > 0) {
+			stringBuilder.append("classWriter.staticField(");
+		} else {
+
+			stringBuilder.append("classWriter.field(");
+		}
 		if (!((access & ACC_PRIVATE) > 0)) {
-			appendAccessFlags(access | ACCESS_FIELD);
+//			appendAccessFlags(access | ACCESS_FIELD);
+			appendAccessFlags(access);
 			stringBuilder.append(", ");
 
+//			
+//			stringBuilder.append("{\n");
+//			stringBuilder.append("fieldVisitor = classWriter.visitField(");
+
+//			stringBuilder.append(", ");
+//			appendConstant(name);
+//			stringBuilder.append(", ");
+//			appendConstant(descriptor);
+//			stringBuilder.append(", ");
+//			appendConstant(signature);
+//			stringBuilder.append(", ");
+//			appendConstant(value);
+//			stringBuilder.append(");\n");
+			appendConstant(name);
+			stringBuilder.append(", Clazz.of(");
+			stringBuilder.append(clazzOf(Type.getType(descriptor)));
+			stringBuilder.append(")");
+		} else {
+			appendAccessFlags(access);
+			stringBuilder.append(", ");
+
+//			
+//			stringBuilder.append("{\n");
+//			stringBuilder.append("fieldVisitor = classWriter.visitField(");
+
+//			stringBuilder.append(", ");
+//			appendConstant(name);
+//			stringBuilder.append(", ");
+//			appendConstant(descriptor);
+//			stringBuilder.append(", ");
+//			appendConstant(signature);
+//			stringBuilder.append(", ");
+//			appendConstant(value);
+//			stringBuilder.append(");\n");
+			appendConstant(name);
+			stringBuilder.append(", Clazz.of(");
+			stringBuilder.append(clazzOf(Type.getType(descriptor)));
+			stringBuilder.append(")");
 		}
-		appendConstant(name);
-		stringBuilder.append(", ");
-		stringBuilder.append(clazzOf(Type.getType(descriptor)));
 		stringBuilder.append(");\n");
 
-//		
-//		stringBuilder.append("{\n");
-//		stringBuilder.append("fieldVisitor = classWriter.visitField(");
-
-//		stringBuilder.append(", ");
-//		appendConstant(name);
-//		stringBuilder.append(", ");
-//		appendConstant(descriptor);
-//		stringBuilder.append(", ");
-//		appendConstant(signature);
-//		stringBuilder.append(", ");
-//		appendConstant(value);
-//		stringBuilder.append(");\n");
 		text.add(stringBuilder.toString());
 		TinyASMifier asmifier = createASMifier("fieldVisitor", 0);
 //		text.add(asmifier.getText());
@@ -439,7 +472,16 @@ public class TinyASMifier extends Printer {
 		stringBuilder.setLength(0);
 //		stringBuilder.append("{\n");
 ///		stringBuilder.append("methodVisitor = classWriter.visitMethod(");
-		stringBuilder.append("classWriter.method(");
+		if (!isMethodStatic) {
+			stringBuilder.append("classWriter.method(");
+			appendAccessFlags(access);
+			stringBuilder.append(", ");
+		} else {
+			stringBuilder.append("classWriter.staticMethod(");
+			appendAccessFlags(access);
+			stringBuilder.append(", ");
+
+		}
 //		appendAccessFlags(access);
 //		stringBuilder.append(", ");
 		if (returnType != Type.VOID_TYPE) {
@@ -873,7 +915,8 @@ public class TinyASMifier extends Printer {
 		case BALOAD: // 51; // -
 		case CALOAD: // 52; // -
 		case SALOAD: // 53; // -
-			stringBuilder.append(visitname).append(".visitInsn(").append(OPCODES[opcode]).append(");\n");
+			stringBuilder.append(visitname).append(".ARRAYLOAD();\n");
+//			stringBuilder.append(visitname).append(".visitInsn(").append(OPCODES[opcode]).append(");\n");
 			break;
 
 		case IASTORE: // 79; // visitInsn
@@ -884,7 +927,8 @@ public class TinyASMifier extends Printer {
 		case BASTORE: // 84; // -
 		case CASTORE: // 85; // -
 		case SASTORE: // 86; // -
-			stringBuilder.append(visitname).append(".visitInsn(").append(OPCODES[opcode]).append(");\n");
+			stringBuilder.append(visitname).append(".ARRAYSTORE();\n");
+//			stringBuilder.append(visitname).append(".visitInsn(").append(OPCODES[opcode]).append(");\n");
 			break;
 		case POP: // 87; // -
 		case POP2: // 88; // -
@@ -1131,12 +1175,10 @@ public class TinyASMifier extends Printer {
 //			}
 
 			stringBuilder.append(visitname).append(".LOAD(\"");
-			if (var == 0) stringBuilder.append("this");
-			else {
-				text.add(stringBuilder.toString());
-				text.add(localVar);
-				stringBuilder.setLength(0);
-			}
+			text.add(stringBuilder.toString());
+			text.add(localVar);
+			stringBuilder.setLength(0);
+
 			stringBuilder.append("\");\n");
 			text.add(stringBuilder.toString());
 		} else if (ISTORE <= opcode && opcode <= ASTORE) {
@@ -1163,15 +1205,13 @@ public class TinyASMifier extends Printer {
 //				stringBuilder.setLength(0);
 //			}
 			stringBuilder.append(visitname).append(".STORE(\"");
-			if (var == 0) stringBuilder.append("this");
-			else {
-				text.add(stringBuilder.toString());
-				text.add(localVar);
-				stringBuilder.setLength(0);
-			}
+
+			text.add(stringBuilder.toString());
+			text.add(localVar);
+			stringBuilder.setLength(0);
+
 			stringBuilder.append("\"");
-			if(localVar.count==1) {
-				stringBuilder.append(",");
+			if (localVar.count == 1) {
 				text.add(stringBuilder.toString());
 				text.add(new VarType(localVar));
 				stringBuilder.setLength(0);
@@ -1208,7 +1248,9 @@ public class TinyASMifier extends Printer {
 
 		@Override
 		public String toString() {
-			return clazzOf(var.type);
+			// TODO
+//			stringBuilder.append(",");
+			return var.type != null ? "," + clazzOf(var.type) : "";
 		}
 	}
 
@@ -1274,10 +1316,19 @@ public class TinyASMifier extends Printer {
 			stringBuilder.append(");\n");
 			text.add(stringBuilder.toString());
 			break;
-//		case PUTSTATIC: // 179; // -
-//			throw new UnsupportedOperationException();
+		case PUTSTATIC: // 179; // -
 
-		
+//			code.GETSTATIC(System.class,"out",PrintStream.class);
+			stringBuilder.setLength(0);
+			stringBuilder.append(this.visitname).append(".PUTSTATIC(");
+			stringBuilder.append(clazzOf(Type.getObjectType(owner)));
+			stringBuilder.append(", ");
+			appendConstant(name);
+			stringBuilder.append(", ");
+			stringBuilder.append(clazzOf(Type.getType(descriptor)));
+			stringBuilder.append(");\n");
+			text.add(stringBuilder.toString());
+			break;
 
 		case GETFIELD: // 180; // -
 //			stringBuilder.setLength(0);
@@ -1392,7 +1443,7 @@ public class TinyASMifier extends Printer {
 		Type returnType = Type.getReturnType(descriptor);
 		if (returnType != Type.VOID_TYPE) {
 			stringBuilder.append("\n\t\t.reTurn(");
-			stringBuilder.append(clazzOf( returnType));
+			stringBuilder.append(clazzOf(returnType));
 			stringBuilder.append(")");
 		}
 
@@ -1436,7 +1487,7 @@ public class TinyASMifier extends Printer {
 	@Override
 	public void visitJumpInsn(final int opcode, final Label label) {
 		stringBuilder.setLength(0);
-		declareLabel(label,OPCODES[opcode]);
+		declareLabel(label, OPCODES[opcode]);
 		switch (opcode) {
 		case IFEQ: // 153; // visitJumpInsn
 			stringBuilder.append(visitname).append(".IFEQ(");
@@ -1504,7 +1555,7 @@ public class TinyASMifier extends Printer {
 
 	@Override
 	public void visitLabel(final Label label) {
-		if (labelNames!=null && labelNames.containsKey(label)) {
+		if (labelNames != null && labelNames.containsKey(label)) {
 			stringBuilder.setLength(0);
 //			declareLabel(label);
 			stringBuilder.append("\n");
@@ -1904,7 +1955,7 @@ public class TinyASMifier extends Printer {
 			stringBuilder.append("ACC_NATIVE");
 			isEmpty = false;
 		}
-		if ((accessFlags & Opcodes.ACC_ENUM) != 0 && (accessFlags & (ACCESS_CLASS | ACCESS_FIELD | ACCESS_INNER)) != 0) {
+		if ((accessFlags & Opcodes.ACC_ENUM) != 0 /*TODO&& (accessFlags & (ACCESS_CLASS | ACCESS_FIELD | ACCESS_INNER)) != 0*/) {
 			if (!isEmpty) {
 				stringBuilder.append(" | ");
 			}
@@ -2104,17 +2155,19 @@ public class TinyASMifier extends Printer {
 			stringBuilder.append("\tLabel ").append(labelName).append(" = new Label();\n");
 		}
 	}
-	protected void declareLabel(final Label label,String name) {
+
+	protected void declareLabel(final Label label, String name) {
 		if (labelNames == null) {
 			labelNames = new HashMap<Label, String>();
 		}
 		String labelName = labelNames.get(label);
 		if (labelName == null) {
-			labelName = "label"  + labelNames.size()+"Of" + name ;
+			labelName = "label" + labelNames.size() + "Of" + name;
 			labelNames.put(label, labelName);
 			stringBuilder.append("\tLabel ").append(labelName).append(" = new Label();\n");
 		}
 	}
+
 	/**
 	 * Appends the name of the given label to {@link #stringBuilder}. The given
 	 * label <i>must</i> already have a name. One way to ensure this is to always

@@ -26,20 +26,6 @@ public class TestBase {
 			throw new RuntimeException(e);
 		}
 	}
-
-	public static String toString(Class<?> clazz) {
-		try {
-			ClassReader cr = new ClassReader(clazz.getName());
-			StringWriter sw = new StringWriter();
-			PrintWriter pw = new PrintWriter(sw);
-			ClassVisitor visitor = new TraceClassVisitor(null, new ASMifier(), pw);
-			cr.accept(visitor, ClassReader.EXPAND_FRAMES);
-			return skipToString(excludeLineNumber(sw.toString()));
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
-
 	public static String toString(String className) {
 		try {
 			ClassReader cr = new ClassReader(className);

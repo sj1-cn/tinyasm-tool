@@ -25,10 +25,10 @@
 		<compiler.compilerArgument></compiler.compilerArgument>
 	</properties>
 	<repositories>
-		<repository>
+	<!-- 	<repository>
 		    <id>jitpack.io</id>
 		    <url>https://jitpack.io</url>
-		</repository>
+		</repository> -->
 	</repositories>
 	<dependencies>
 <!-- 	<dependency>

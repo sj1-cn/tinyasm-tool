@@ -20,8 +20,9 @@ public class TinyLocalsStack implements Iterable<TinyLocalsStack.Var> {
 		Type type;
 		String name;
 		private String s = null;
+
 		public void setS(String s) {
-			this.s =s;
+			this.s = s;
 		}
 
 		public String getS() {
@@ -54,7 +55,7 @@ public class TinyLocalsStack implements Iterable<TinyLocalsStack.Var> {
 
 		@Override
 		public String toString() {
-			return this.name != null ? this.name : "var" + locals;
+			return this.name != null && this.name.length() > 0 ? this.name : "var" + locals;
 		}
 	}
 

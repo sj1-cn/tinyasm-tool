@@ -1,18 +1,8 @@
 package nebula.tinyasm.util;
 
-import static nebula.tinyasm.util.RefineCode.excludeLineNumber;
-import static nebula.tinyasm.util.RefineCode.skipToString;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-
 import org.junit.Test;
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.util.ASMifier;
-import org.objectweb.asm.util.TraceClassVisitor;
 
 public class TinyASMifierTest extends TinyASMifierTestBase {
 

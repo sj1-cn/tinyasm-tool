@@ -29,6 +29,7 @@ package nebula.tinyasm.util;
 
 import static org.objectweb.asm.Opcodes.*;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -54,6 +55,7 @@ import nebula.tinyasm.util.TinyLocalsStack.Var;
  *
  * @author Eric Bruneton
  */
+@SuppressWarnings("deprecation")
 public class TinyASMifier extends Printer {
 	static Logger logger = LoggerFactory.getLogger(TinyASMifier.class);
 
@@ -74,9 +76,10 @@ public class TinyASMifier extends Printer {
 //	private static final String NEW_OBJECT_ARRAY = ", new Object[] {";
 	private static final String END_ARRAY = " });\n";
 	private static final String END_PARAMETERS = ");\n\n";
-	private static final String VISIT_END = ".visitEnd();\n";
+//	private static final String VISIT_END = ".visitEnd();\n";
 //	private static final String VISIT_END = ".visitEnd();\n";
 
+	@SuppressWarnings("unused")
 	private static final Map<Integer, String> CLASS_VERSIONS;
 
 	static {
@@ -196,6 +199,7 @@ public class TinyASMifier extends Printer {
 
 		text.add("import static org.objectweb.asm.Opcodes.*;\n");
 
+		text.add("import nebula.tinyasm.Annotation;\n");
 		text.add("import nebula.tinyasm.Clazz;\n");
 		text.add("@SuppressWarnings(\"unused\")\n");
 
@@ -261,6 +265,7 @@ public class TinyASMifier extends Printer {
 			stringBuilder.append(")");
 		}
 		stringBuilder.append(".body();\n\n");
+		this.annotation = new Annotation();
 		text.add(stringBuilder.toString());
 	}
 
@@ -457,8 +462,17 @@ public class TinyASMifier extends Printer {
 //			stringBuilder.append(clazzOf(Type.getType(descriptor)));
 //			stringBuilder.append(")");
 //		} else {
-		appendAccessFlags(access);
-		stringBuilder.append(", ");
+
+		{// access
+			appendAccessFlags(access);
+			stringBuilder.append(", ");
+			text.add(stringBuilder.toString());
+		}
+
+		{// annotation
+			this.annotation = new Annotation();
+			text.add(new TextParameter(this.annotation));
+		}
 
 //			
 //			stringBuilder.append("{\n");
@@ -466,6 +480,7 @@ public class TinyASMifier extends Printer {
 
 //			stringBuilder.append(", ");
 
+		stringBuilder.setLength(0);
 		appendConstant(name);
 
 		if (signature == null) {
@@ -487,9 +502,25 @@ public class TinyASMifier extends Printer {
 
 		text.add(stringBuilder.toString());
 		TinyASMifier asmifier = createASMifier("fieldVisitor", 0);
-//		text.add(asmifier.getText());
+		text.add(asmifier.getText());
+		asmifier.annotation = this.annotation;
 //		text.add("}\n");
 		return asmifier;
+	}
+
+	static class TextParameter {
+		Object object;
+
+		public TextParameter(Object object) {
+			this.object = object;
+		}
+
+		@Override
+		public String toString() {
+			String str = object.toString();
+			return str == null ? "" : object.toString() + ",";
+		}
+
 	}
 
 	TinyLocalsStack methodLocals = new TinyLocalsStack();;
@@ -577,6 +608,7 @@ public class TinyASMifier extends Printer {
 		asmifier.methodParamTypes = this.methodParamTypes;
 		asmifier.methodParamClazzes = this.methodParamClazzes;
 		asmifier.methodIsStatic = this.methodIsStatic;
+		asmifier.annotation = new Annotation();
 		text.add(asmifier.getText());
 		text.add("});\n");
 		return asmifier;
@@ -695,15 +727,70 @@ public class TinyASMifier extends Printer {
 	// Annotations
 	// -----------------------------------------------------------------------------------------------
 
+	Annotation annotation;
+
+	static class Annotation {
+		public String clazz;
+		public boolean visible;
+		List<String> keys = new ArrayList<>();
+		List<Object> values = new ArrayList<>();
+
+//		cw.field(ACC_PRIVATE, Annotation.of(TestAnnotation.class), "annotation", Clazz.of(String.class));
+//		cw.field(ACC_PRIVATE, Annotation.of(TestAnnotation.class, "value"), "annotationWithDefaultValue", Clazz.of(String.class));
+//		cw.field(ACC_PRIVATE, Annotation.of(TestAnnotation.class, new String[] { "value", "name" }, new Object[] { "value", "name" }),
+//				"annotationWithDefaultValueAndNamedValue", Clazz.of(String.class));
+//		cw.field(ACC_PRIVATE, Annotation.of(TestAnnotation.class, new String[] { "name", "secondName" }, new Object[] { "name", "secondName" }),
+//				"annotationWithDefaultValueAndNamedValue2", Clazz.of(String.class));
+		@Override
+		public String toString() {
+			if (clazz != null) {
+				StringBuilder sb = new StringBuilder();
+				sb.append("Annotation.of(");
+				sb.append(clazz);
+				if (keys.size() > 0) {
+					sb.append(", new String[] {");
+					int i = 0;
+					sb.append("\"");
+					sb.append(keys.get(i));
+					sb.append("\"");
+					for (i++; i < keys.size(); i++) {
+						sb.append(",\"");
+						sb.append(keys.get(i));
+						sb.append("\"");
+					}
+					sb.append("}");
+
+					sb.append(", new Object[] {");
+					i = 0;
+					sb.append(values.get(i));
+					for (i++; i < values.size(); i++) {
+						sb.append(',');
+						sb.append(values.get(i));
+					}
+					sb.append("}");
+				}
+				sb.append(")");
+
+				return sb.toString();
+			} else {
+				return null;
+			}
+		}
+	}
+
 	@Override
 	public void visit(final String name, final Object value) {
+		this.annotation.keys.add(name);
 		stringBuilder.setLength(0);
-		stringBuilder.append(ANNOTATION_VISITOR).append(id).append(".visit(");
-		appendConstant(name);
-		stringBuilder.append(", ");
 		appendConstant(value);
-		stringBuilder.append(");\n");
-		text.add(stringBuilder.toString());
+		this.annotation.values.add(stringBuilder.toString());
+//		stringBuilder.setLength(0);
+//		stringBuilder.append(ANNOTATION_VISITOR).append(id).append(".visit(");
+//		appendConstant(name);
+//		stringBuilder.append(", ");
+//		appendConstant(value);
+//		stringBuilder.append(");\n");
+//		text.add(stringBuilder.toString());
 	}
 
 	@Override
@@ -730,6 +817,7 @@ public class TinyASMifier extends Printer {
 		stringBuilder.append(");\n");
 		text.add(stringBuilder.toString());
 		TinyASMifier asmifier = createASMifier(ANNOTATION_VISITOR, id + 1);
+		asmifier.annotation = this.annotation;
 		text.add(asmifier.getText());
 		text.add("}\n");
 		return asmifier;
@@ -745,6 +833,7 @@ public class TinyASMifier extends Printer {
 		stringBuilder.append(");\n");
 		text.add(stringBuilder.toString());
 		TinyASMifier asmifier = createASMifier(ANNOTATION_VISITOR, id + 1);
+		asmifier.annotation = this.annotation;
 		text.add(asmifier.getText());
 		text.add("}\n");
 		return asmifier;
@@ -752,9 +841,11 @@ public class TinyASMifier extends Printer {
 
 	@Override
 	public void visitAnnotationEnd() {
-		stringBuilder.setLength(0);
-		stringBuilder.append(ANNOTATION_VISITOR).append(id).append(VISIT_END);
-		text.add(stringBuilder.toString());
+//		this.annotation.
+		logger.debug("{}", this.annotation.clazz);
+//		stringBuilder.setLength(0);
+//		stringBuilder.append(ANNOTATION_VISITOR).append(id).append(VISIT_END);
+//		text.add(stringBuilder.toString());
 	}
 
 	// -----------------------------------------------------------------------------------------------
@@ -763,7 +854,13 @@ public class TinyASMifier extends Printer {
 
 	@Override
 	public TinyASMifier visitFieldAnnotation(final String descriptor, final boolean visible) {
+
 		return visitAnnotation(descriptor, visible);
+
+	}
+
+	private String clazzof(String descriptor) {
+		return clazzOf(Type.getType(descriptor));
 	}
 
 	@Override
@@ -778,9 +875,9 @@ public class TinyASMifier extends Printer {
 
 	@Override
 	public void visitFieldEnd() {
-		stringBuilder.setLength(0);
-		stringBuilder.append(visitname).append(VISIT_END);
-		text.add(stringBuilder.toString());
+//		stringBuilder.setLength(0);
+//		stringBuilder.append(visitname).append(VISIT_END);
+//		text.add(stringBuilder.toString());
 	}
 
 	// -----------------------------------------------------------------------------------------------
@@ -811,6 +908,7 @@ public class TinyASMifier extends Printer {
 		text.add(stringBuilder.toString());
 		TinyASMifier asmifier = createASMifier(ANNOTATION_VISITOR, 0);
 		text.add(asmifier.getText());
+		asmifier.annotation = annotation;
 		text.add("}\n");
 		return asmifier;
 	}
@@ -841,6 +939,7 @@ public class TinyASMifier extends Printer {
 		stringBuilder.append(", ").append(visible).append(");\n");
 		text.add(stringBuilder.toString());
 		TinyASMifier asmifier = createASMifier(ANNOTATION_VISITOR, 0);
+		asmifier.annotation = annotation;
 		text.add(asmifier.getText());
 		text.add("}\n");
 		return asmifier;
@@ -1423,7 +1522,7 @@ public class TinyASMifier extends Printer {
 		case PUTSTATIC: // 179; // -
 
 //			code.GETSTATIC(System.class,"out",PrintStream.class);
-			
+
 			stringBuilder.setLength(0);
 			stringBuilder.append(this.visitname).append(".PUTSTATIC(");
 			stringBuilder.append(clazzOf(Type.getObjectType(owner)));
@@ -1837,6 +1936,7 @@ public class TinyASMifier extends Printer {
 		stringBuilder.append(", ").append(visible).append(");\n");
 		text.add(stringBuilder.toString());
 		TinyASMifier asmifier = createASMifier(ANNOTATION_VISITOR, 0);
+		asmifier.annotation = this.annotation;
 		text.add(asmifier.getText());
 		text.add("}\n");
 		return asmifier;
@@ -1880,14 +1980,23 @@ public class TinyASMifier extends Printer {
 	 * @return a new {@link TinyASMifier} to visit the annotation values.
 	 */
 	public TinyASMifier visitAnnotation(final String descriptor, final boolean visible) {
-		stringBuilder.setLength(0);
-		stringBuilder.append("{\n").append(ANNOTATION_VISITOR0).append(visitname).append(".visitAnnotation(");
-		appendConstant(descriptor);
-		stringBuilder.append(", ").append(visible).append(");\n");
-		text.add(stringBuilder.toString());
+//		stringBuilder.setLength(0);
+//		stringBuilder.append("{\n").append(ANNOTATION_VISITOR0).append(visitname).append(".visitAnnotation(");
+//		appendConstant(descriptor);
+//		stringBuilder.append(", ").append(visible).append(");\n");
+//		text.add(stringBuilder.toString());
+//		TinyASMifier asmifier = createASMifier(ANNOTATION_VISITOR, 0);
+//		text.add(asmifier.getText());
+//		text.add("}\n");
+
+//		this.annotation = new Annotation();
+		this.annotation.clazz = clazzof(descriptor);
+		this.annotation.visible = visible;
+//		text.add(this.annotation);
 		TinyASMifier asmifier = createASMifier(ANNOTATION_VISITOR, 0);
-		text.add(asmifier.getText());
-		text.add("}\n");
+//		text.add(asmifier.getText());
+		asmifier.annotation = this.annotation;
+//		text.add("}\n");
 		return asmifier;
 	}
 
@@ -1939,6 +2048,7 @@ public class TinyASMifier extends Printer {
 		stringBuilder.append(", ").append(visible).append(");\n");
 		text.add(stringBuilder.toString());
 		TinyASMifier asmifier = createASMifier(ANNOTATION_VISITOR, 0);
+		asmifier.annotation = annotation;
 		text.add(asmifier.getText());
 		text.add("}\n");
 		return asmifier;
@@ -2146,7 +2256,6 @@ public class TinyASMifier extends Printer {
 	 *              {@link Float}, {@link Long} or {@link Double} object, or an
 	 *              array of primitive values. May be <tt>null</tt>.
 	 */
-	@SuppressWarnings("deprecation")
 	protected void appendConstant(final Object value) {
 		if (value == null) {
 			stringBuilder.append("null");

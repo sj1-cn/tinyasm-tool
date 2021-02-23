@@ -1,4 +1,4 @@
-package nebula.tinyasm.util;
+package cc1sj.tinyasm.util;
 
 public class SimpleSample {
 	int i = 0;

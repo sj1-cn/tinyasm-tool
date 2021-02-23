@@ -1,4 +1,4 @@
-package nebula.tinyasm.util;
+package cc1sj.tinyasm.util;
 
 import java.util.ArrayList;
 import java.util.List;

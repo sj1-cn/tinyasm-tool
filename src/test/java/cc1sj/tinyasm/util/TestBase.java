@@ -1,7 +1,7 @@
-package nebula.tinyasm.util;
+package cc1sj.tinyasm.util;
 
-import static nebula.tinyasm.util.RefineCode.excludeLineNumber;
-import static nebula.tinyasm.util.RefineCode.skipToString;
+import static cc1sj.tinyasm.util.RefineCode.excludeLineNumber;
+import static cc1sj.tinyasm.util.RefineCode.skipToString;
 
 import java.io.IOException;
 import java.io.PrintWriter;

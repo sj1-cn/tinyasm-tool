@@ -25,7 +25,7 @@
 // CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 // THE POSSIBILITY OF SUCH DAMAGE.
-package nebula.tinyasm.util;
+package cc1sj.tinyasm.util;
 
 import static org.objectweb.asm.Opcodes.*;
 
@@ -48,7 +48,7 @@ import org.objectweb.asm.util.Printer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import nebula.tinyasm.util.TinyLocalsStack.Var;
+import cc1sj.tinyasm.util.TinyLocalsStack.Var;
 
 /**
  * A {@link Printer} that prints the ASM code to generate the classes if visits.
@@ -192,15 +192,15 @@ public class TinyASMifier extends Printer {
 //    text.add("import org.objectweb.asm.Type;\n");
 //    text.add("import org.objectweb.asm.TypePath;\n");
 
-		text.add("import nebula.tinyasm.ClassBody;\n");
-		text.add("import nebula.tinyasm.ClassBuilder;\n");
-		text.add("import nebula.tinyasm.MethodCode;\n");
+		text.add("import cc1sj.tinyasm.ClassBody;\n");
+		text.add("import cc1sj.tinyasm.ClassBuilder;\n");
+		text.add("import cc1sj.tinyasm.MethodCode;\n");
 		text.add("import org.objectweb.asm.Type;\n");
 
 		text.add("import static org.objectweb.asm.Opcodes.*;\n");
 
-		text.add("import nebula.tinyasm.Annotation;\n");
-		text.add("import nebula.tinyasm.Clazz;\n");
+		text.add("import cc1sj.tinyasm.Annotation;\n");
+		text.add("import cc1sj.tinyasm.Clazz;\n");
 		text.add("@SuppressWarnings(\"unused\")\n");
 
 		text.add("public class " + simpleName + "TinyAsmDump {\n\n");
@@ -211,7 +211,7 @@ public class TinyASMifier extends Printer {
 //    text.add("AnnotationVisitor annotationVisitor0;\n\n");
 
 		// ClassBody classWriter =
-		// ClassBuilder.make("nebula.tinyasm.util.SimpleSample").body();
+		// ClassBuilder.make("cc1sj.tinyasm.util.SimpleSample").body();
 //		ClassSignature = ( visitFormalTypeParameter visitClassBound? visitInterfaceBound* )* (visitSuperclass visitInterface* )
 //				MethodSignature = ( visitFormalTypeParameter visitClassBound? visitInterfaceBound* )* (visitParameterType* visitReturnType visitExceptionType* )
 //				TypeSignature = visitBaseType | visitTypeVariable | visitArrayType | ( visitClassType visitTypeArgument* ( visitInnerClassType visitTypeArgument* )* visitEnd ) )

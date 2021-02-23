@@ -244,7 +244,8 @@ public class TinyASMifier extends Printer {
 				}
 //				stringBuilder.append(" }");
 			} else {
-				stringBuilder.append("null");
+//				stringBuilder.append(", ");
+//				stringBuilder.append("null");
 			}
 			stringBuilder.append(")");
 		} else {

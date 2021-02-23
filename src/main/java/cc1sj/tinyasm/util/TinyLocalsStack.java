@@ -19,14 +19,18 @@ public class TinyLocalsStack implements Iterable<TinyLocalsStack.Var> {
 //		public Annotation annotation;
 		Type type;
 		String name;
-		private String s = null;
+		String signature = null;
 
-		public void setS(String s) {
-			this.s = s;
+//		public void set(String s) {
+//			this.signature = s;
+//		}
+
+		public void setSignature(String signature) {
+			this.signature = signature;
 		}
 
-		public String getS() {
-			return s;
+		public String getSignature() {
+			return signature;
 		}
 
 		public Var(String name, Type type) {
@@ -52,6 +56,7 @@ public class TinyLocalsStack implements Iterable<TinyLocalsStack.Var> {
 		public int locals = 0;
 
 		int count = 0;
+		public boolean defined;
 
 		@Override
 		public String toString() {
@@ -73,15 +78,36 @@ public class TinyLocalsStack implements Iterable<TinyLocalsStack.Var> {
 
 	public Var accessLoad(int index, int size) {
 		Var var;
-		if (locals.size() <= index) {
+		if (locals.size() > index) {
+			int stackIndex = locals.get(index);
+			if (stackIndex >= 0) {
+				var = stack.get(stackIndex);
+			} else {
+				stackIndex = stack.size();
+				var = new Var(null, null);
+				var.locals = index;
+				stack.push(var);
+				locals.set(index, stackIndex);
+				for (int i = 1; i < size; i++) {
+					locals.set(index + i, -i);
+				}
+			}
+		} else {
+			if (locals.size() < index) {
+				for (int i = locals.size(); i < index; i++) {
+					locals.push(-i);
+				}
+			}
+
+			int stackIndex = stack.size();
 			var = new Var(null, null);
 			var.locals = index;
-			for (int i = 0; i < size; i++) {
-				locals.push(stack.size());
+			locals.push(stackIndex);
+			for (int i = 1; i < size; i++) {
+				locals.push(-i);
 			}
 			stack.push(var);
-		} else {
-			var = getByLocal(index);
+
 		}
 		var.count++;
 		return var;
@@ -89,25 +115,48 @@ public class TinyLocalsStack implements Iterable<TinyLocalsStack.Var> {
 
 	public Var accessStore(int index, int size) {
 		Var var;
-		if (locals.size() <= index) {
+		if (locals.size() > index) {
+			int stackIndex = locals.get(index);
+			if (stackIndex >= 0) {
+				var = stack.get(stackIndex);
+			} else {
+				stackIndex = stack.size();
+				var = new Var(null, null);
+				var.locals = index;
+				stack.push(var);
+				locals.set(index, stackIndex);
+				for (int i = 1; i < size; i++) {
+					locals.set(index + i, -i);
+				}
+			}
+		} else {
+			if (locals.size() < index) {
+				for (int i = locals.size(); i < index; i++) {
+					locals.push(-i);
+				}
+			}
+
+			int stackIndex = stack.size();
 			var = new Var(null, null);
 			var.locals = index;
-			for (int i = 0; i < size; i++) {
-				locals.push(stack.size());
+			locals.push(stackIndex);
+			for (int i = 1; i < size; i++) {
+				locals.push(-i);
 			}
 			stack.push(var);
-		} else {
-			var = getByLocal(index);
+
 		}
 		var.count++;
 		return var;
 	}
 
-	public Var push(String name, Type clazz) {
-		return push(name, new Var(name, clazz));
+	public Var pushDefined(String name, Type clazz) {
+		Var var = new Var(name, clazz);
+		var.defined = true;
+		return push(name, var);
 	}
 
-	public Var push(String name) {
+	public Var pushUndefined(String name) {
 		return push(name, new Var(name, null));
 	}
 

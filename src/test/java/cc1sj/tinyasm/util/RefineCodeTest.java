@@ -4,7 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-public class RefineCodeTest extends TestBase {
+public class RefineCodeTest {
 //	String clazz = MakeComplexSample.class.getName();
 
 	@Test

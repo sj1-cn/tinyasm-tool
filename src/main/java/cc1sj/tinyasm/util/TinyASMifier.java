@@ -159,6 +159,22 @@ public class TinyASMifier extends Printer {
 	// -----------------------------------------------------------------------------------------------
 
 	String className;
+	
+	class HolderReferTypes{
+
+		@Override
+		public String toString() {
+			StringBuilder sb = new StringBuilder();
+			
+			for(String key : referedTypes.keySet()) {
+				sb.append("import ");
+				sb.append(key);
+				sb.append(";\n");
+			}
+			return sb.toString();
+		}
+		
+	}
 
 	@Override
 	public void visit(final int version, final int access, final String name, final String signature, final String superName,
@@ -205,10 +221,13 @@ public class TinyASMifier extends Printer {
 
 		text.add("import cc1sj.tinyasm.Annotation;\n");
 		text.add("import cc1sj.tinyasm.Clazz;\n");
+		text.add(new HolderReferTypes());
+		
 		text.add("@SuppressWarnings(\"unused\")\n");
 
 		text.add("public class " + simpleName + "TinyAsmDump {\n\n");
 		text.add("public static byte[] dump () throws Exception {\n\n");
+		
 //    text.add("ClassWriter classWriter = new ClassWriter(0);\n");
 //    text.add("FieldVisitor fieldVisitor;\n");
 //    text.add("MethodVisitor methodVisitor;\n");
@@ -229,7 +248,7 @@ public class TinyASMifier extends Printer {
 			if (!Object.class.getName().equals(superName.replace('/', '.'))) {
 				hasSuperClass = true;
 				stringBuilder.append(", ");
-				stringBuilder.append(superName.replace('/', '.') + ".class");
+				stringBuilder.append(clazzof(superName));
 			}
 			if (interfaces != null && interfaces.length > 0) {
 				if (!hasSuperClass) {
@@ -240,7 +259,7 @@ public class TinyASMifier extends Printer {
 				for (int i = 0; i < interfaces.length; ++i) {
 					stringBuilder.append(", ");
 //					appendConstant(interfaces[i]);
-					stringBuilder.append(interfaces[i].replace('/', '.') + ".class");
+					stringBuilder.append(clazzof(interfaces[i]));
 				}
 //				stringBuilder.append(" }");
 			} else {
@@ -279,6 +298,8 @@ public class TinyASMifier extends Printer {
 		this.annotation = new Annotation();
 		text.add(stringBuilder.toString());
 	}
+
+	
 
 //	class ClazzBuilder {
 //		ClazzBuilder parent;
@@ -418,15 +439,18 @@ public class TinyASMifier extends Printer {
 		typeMaps.put("[D", "double[].class");
 	}
 
+	Map<String,String> referedTypes = new HashMap<String, String>();
 	private String clazzOf(Type type) {
 		logger.trace("clazzOf({})", type);
 		if (typeMaps.containsKey(type.getInternalName())) {
 			return typeMaps.get(type.getInternalName());
 		} else if (type.getSort() == Type.ARRAY && type.getElementType().getSort() == Type.OBJECT) {
 			logger.debug("{} Array", type.getElementType());
-			return type.getElementType().getClassName() + "[].class";
+			referedTypes.put(type.getElementType().getClassName(),"");
+			return toSimpleName(type.getElementType().getClassName()) + "[].class";
 		} else if (type.getSort() == Type.OBJECT) {
-			return type.getClassName() + ".class";
+			referedTypes.put(type.getClassName(),"");
+			return toSimpleName(type.getClassName()) + ".class";
 		}
 
 //		Class<?> c = char[].class.isar;
@@ -439,6 +463,10 @@ public class TinyASMifier extends Printer {
 //			break;
 //		}
 //		return null;
+	}
+	
+	String toSimpleName(String str) {
+		return str.substring(str.lastIndexOf('.')+1,str.length());
 	}
 
 	@Override
@@ -632,6 +660,7 @@ public class TinyASMifier extends Printer {
 		asmifier.methodIsStatic = this.methodIsStatic;
 		asmifier.className = this.className;
 		asmifier.annotation = new Annotation();
+		asmifier.referedTypes = this.referedTypes;
 		text.add(asmifier.getText());
 		text.add("});\n");
 		return asmifier;
@@ -1708,7 +1737,7 @@ public class TinyASMifier extends Printer {
 
 //		stringBuilder.append(this.name).append(".visitMethodInsn(").append(OPCODES[opcode]).append(", ");
 		if (!this.className.equals(owner)) {
-			stringBuilder.append(owner.replace('/', '.') + ".class");
+			stringBuilder.append(clazzOf(Type.getObjectType(owner)));
 			stringBuilder.append(", ");
 		}
 		appendConstant(name);

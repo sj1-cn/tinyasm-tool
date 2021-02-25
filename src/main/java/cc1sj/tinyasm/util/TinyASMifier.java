@@ -115,7 +115,7 @@ public class TinyASMifier extends Printer {
 	 * @throws IllegalStateException If a subclass calls this constructor.
 	 */
 	public TinyASMifier() {
-		this(Opcodes.ASM6, "classWriter", 0);
+		this(Opcodes.ASM6, "classBody", 0);
 		if (getClass() != TinyASMifier.class) {
 			throw new IllegalStateException();
 		}
@@ -228,27 +228,27 @@ public class TinyASMifier extends Printer {
 		text.add("public class " + simpleName + "TinyAsmDump {\n\n");
 		text.add("public static byte[] dump () throws Exception {\n\n");
 		
-//    text.add("ClassWriter classWriter = new ClassWriter(0);\n");
+//    text.add("ClassWriter classBody = new ClassWriter(0);\n");
 //    text.add("FieldVisitor fieldVisitor;\n");
 //    text.add("MethodVisitor methodVisitor;\n");
 //    text.add("AnnotationVisitor annotationVisitor0;\n\n");
 
-		// ClassBody classWriter =
+		// ClassBody classBody =
 		// ClassBuilder.make("cc1sj.tinyasm.util.SimpleSample").body();
 //		ClassSignature = ( visitFormalTypeParameter visitClassBound? visitInterfaceBound* )* (visitSuperclass visitInterface* )
 //				MethodSignature = ( visitFormalTypeParameter visitClassBound? visitInterfaceBound* )* (visitParameterType* visitReturnType visitExceptionType* )
 //				TypeSignature = visitBaseType | visitTypeVariable | visitArrayType | ( visitClassType visitTypeArgument* ( visitInnerClassType visitTypeArgument* )* visitEnd ) )
 
 		stringBuilder.setLength(0);
-		/// stringBuilder.append("classWriter.visit(");
+		/// stringBuilder.append("classBody.visit(");
 		if (signature == null) {
-			stringBuilder.append("ClassBody classWriter = ClassBuilder.make(");
+			stringBuilder.append("ClassBody classBody = ClassBuilder.make(");
 			appendConstant(name.replace('/', '.'));
 			boolean hasSuperClass = false;
 			if (!Object.class.getName().equals(superName.replace('/', '.'))) {
 				hasSuperClass = true;
 				stringBuilder.append(", ");
-				stringBuilder.append(clazzof(superName));
+				stringBuilder.append(clazzOf(Type.getObjectType(superName)));
 			}
 			if (interfaces != null && interfaces.length > 0) {
 				if (!hasSuperClass) {
@@ -259,7 +259,7 @@ public class TinyASMifier extends Printer {
 				for (int i = 0; i < interfaces.length; ++i) {
 					stringBuilder.append(", ");
 //					appendConstant(interfaces[i]);
-					stringBuilder.append(clazzof(interfaces[i]));
+					stringBuilder.append(clazzOf(Type.getObjectType(interfaces[i])));
 				}
 //				stringBuilder.append(" }");
 			} else {
@@ -268,7 +268,7 @@ public class TinyASMifier extends Printer {
 			}
 			stringBuilder.append(")");
 		} else {
-			stringBuilder.append("ClassBody classWriter = ClassBuilder.make(");
+			stringBuilder.append("ClassBody classBody = ClassBuilder.make(");
 
 			appendConstant(name.replace('/', '.'));
 			stringBuilder.append(", ");
@@ -320,7 +320,7 @@ public class TinyASMifier extends Printer {
 	@Override
 	public void visitSource(final String file, final String debug) {
 //    stringBuilder.setLength(0);
-//    stringBuilder.append("classWriter.visitSource(");
+//    stringBuilder.append("classBody.visitSource(");
 //    appendConstant(file);
 //    stringBuilder.append(", ");
 //    appendConstant(debug);
@@ -331,7 +331,7 @@ public class TinyASMifier extends Printer {
 	@Override
 	public Printer visitModule(final String name, final int flags, final String version) {
 		stringBuilder.setLength(0);
-		stringBuilder.append("ModuleVisitor moduleVisitor = classWriter.visitModule(");
+		stringBuilder.append("ModuleVisitor moduleVisitor = classBody.visitModule(");
 		appendConstant(name);
 		stringBuilder.append(", ");
 		appendAccessFlags(flags | ACCESS_MODULE);
@@ -348,7 +348,7 @@ public class TinyASMifier extends Printer {
 	@Override
 	public void visitNestHostExperimental(final String nestHost) {
 		stringBuilder.setLength(0);
-		stringBuilder.append("classWriter.visitNestHostExperimental(");
+		stringBuilder.append("classBody.visitNestHostExperimental(");
 		appendConstant(nestHost);
 		stringBuilder.append(");\n\n");
 		text.add(stringBuilder.toString());
@@ -357,7 +357,7 @@ public class TinyASMifier extends Printer {
 	@Override
 	public void visitOuterClass(final String owner, final String name, final String descriptor) {
 		stringBuilder.setLength(0);
-		stringBuilder.append("classWriter.visitOuterClass(");
+		stringBuilder.append("classBody.visitOuterClass(");
 		appendConstant(owner);
 		stringBuilder.append(", ");
 		appendConstant(name);
@@ -386,7 +386,7 @@ public class TinyASMifier extends Printer {
 	@Override
 	public void visitNestMemberExperimental(final String nestMember) {
 		stringBuilder.setLength(0);
-		stringBuilder.append("classWriter.visitNestMemberExperimental(");
+		stringBuilder.append("classBody.visitNestMemberExperimental(");
 		appendConstant(nestMember);
 		stringBuilder.append(");\n\n");
 		text.add(stringBuilder.toString());
@@ -395,7 +395,7 @@ public class TinyASMifier extends Printer {
 	@Override
 	public void visitInnerClass(final String name, final String outerName, final String innerName, final int access) {
 		stringBuilder.setLength(0);
-		stringBuilder.append("classWriter.visitInnerClass(");
+		stringBuilder.append("classBody.visitInnerClass(");
 		appendConstant(name);
 		stringBuilder.append(", ");
 		appendConstant(outerName);
@@ -472,10 +472,10 @@ public class TinyASMifier extends Printer {
 	@Override
 	public TinyASMifier visitField(final int access, final String name, final String descriptor, final String signature,
 			final Object value) {
-//		classWriter.field("i", int.class);
+//		classBody.field("i", int.class);
 		stringBuilder.setLength(0);
 		if ((access & ACC_STATIC) > 0) {
-			stringBuilder.append("classWriter.staticField(");
+			stringBuilder.append("classBody.staticField(");
 			// access
 			if (access != (ACC_STATIC | ACC_PUBLIC)) {
 				appendAccessFlags(access);
@@ -483,7 +483,7 @@ public class TinyASMifier extends Printer {
 			}
 		} else {
 
-			stringBuilder.append("classWriter.field(");
+			stringBuilder.append("classBody.field(");
 			if (access != (ACC_PRIVATE)) {// access
 				appendAccessFlags(access);
 				stringBuilder.append(", ");
@@ -497,7 +497,7 @@ public class TinyASMifier extends Printer {
 //
 ////			
 ////			stringBuilder.append("{\n");
-////			stringBuilder.append("fieldVisitor = classWriter.visitField(");
+////			stringBuilder.append("fieldVisitor = classBody.visitField(");
 //
 ////			stringBuilder.append(", ");
 ////			appendConstant(name);
@@ -521,7 +521,7 @@ public class TinyASMifier extends Printer {
 
 //			
 //			stringBuilder.append("{\n");
-//			stringBuilder.append("fieldVisitor = classWriter.visitField(");
+//			stringBuilder.append("fieldVisitor = classBody.visitField(");
 
 //			stringBuilder.append(", ");
 
@@ -596,15 +596,15 @@ public class TinyASMifier extends Printer {
 		}
 
 		stringBuilder.setLength(0);
-//		stringBuilder.append("{\n");
+		stringBuilder.append("{\n");
 		if (!methodIsStatic) {
-			stringBuilder.append("classWriter.method(");
+			stringBuilder.append("\tMethodCode code = classBody.method(");
 			if (access != (ACC_PUBLIC)) {
 				appendAccessFlags(access);
 				stringBuilder.append(", ");
 			}
 		} else {
-			stringBuilder.append("classWriter.staticMethod(");
+			stringBuilder.append("\tMethodCode code = classBody.staticMethod(");
 			if (access != (ACC_PUBLIC | ACC_STATIC)) {
 				appendAccessFlags(access);
 				stringBuilder.append(", ");
@@ -662,14 +662,14 @@ public class TinyASMifier extends Printer {
 		asmifier.annotation = new Annotation();
 		asmifier.referedTypes = this.referedTypes;
 		text.add(asmifier.getText());
-		text.add("});\n");
+		text.add("\tcode.END();\n}\n\n");
 		return asmifier;
 	}
 
 	@Override
 	public void visitClassEnd() {
-///		text.add("classWriter.visitEnd();\n\n");
-		text.add("return classWriter.end().toByteArray();\n");
+///		text.add("classBody.visitEnd();\n\n");
+		text.add("return classBody.end().toByteArray();\n");
 		text.add("}\n");
 		text.add("}\n");
 	}
@@ -1085,7 +1085,7 @@ public class TinyASMifier extends Printer {
 		}
 
 		stringBuilder.setLength(0);
-		stringBuilder.append(".code(code -> {\n");
+		stringBuilder.append(".begin();\n");
 		text.add(stringBuilder.toString());
 	}
 

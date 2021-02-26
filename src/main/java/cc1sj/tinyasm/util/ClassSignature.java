@@ -2,7 +2,9 @@ package cc1sj.tinyasm.util;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
+import org.objectweb.asm.Type;
 import org.objectweb.asm.signature.SignatureVisitor;
 
 final class ClassSignature extends SignatureVisitor {
@@ -29,9 +31,10 @@ final class ClassSignature extends SignatureVisitor {
 	List<StringBuilder> typeParameterClass = new ArrayList<>();;
 
 	StringBuilder sb;
-
-	ClassSignature(int api) {
+	Map<String, String> referedTypes;
+	ClassSignature(int api, Map<String, String> referedTypes) {
 		super(api);
+		this.referedTypes = referedTypes;
 	}
 
 	@Override
@@ -125,11 +128,13 @@ final class ClassSignature extends SignatureVisitor {
 	@Override
 	public void visitClassType(String name) {
 		sb.append("Clazz.of(");
-		sb.append(name.replace('/', '.'));
-		if (array) {
-			sb.append("[]");
-		}
-		sb.append(".class");
+//		sb.append(name.replace('/', '.'));
+//		if (array) {
+//			sb.append("[]");
+//		}
+//		sb.append(".class");
+		sb.append(TinyASMifier.clazzOf(Type.getObjectType(name), referedTypes));
+		
 		TinyASMifier.logger.debug("{}visitClassType({})", indent(), name);
 		level++;
 		super.visitClassType(name);

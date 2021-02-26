@@ -14,6 +14,7 @@ public class TinyASMifierTest {
 
 		assertNotEquals("Code", codeExpected, codeActual);
 	}
+
 	@Test
 	public void test_LabelSample() throws Exception {
 		Class<?> expectedClazz = LabelSample.class;
@@ -23,7 +24,6 @@ public class TinyASMifierTest {
 
 		assertNotEquals("Code", codeExpected, codeActual);
 	}
-	
 
 	@Test
 	public void test_Pojo() throws Exception {
@@ -34,8 +34,5 @@ public class TinyASMifierTest {
 
 		assertNotEquals("Code", codeExpected, codeActual);
 	}
-	
-	
-	
-	
+
 }

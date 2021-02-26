@@ -2,6 +2,7 @@ package cc1sj.tinyasm.util;
 
 import static cc1sj.tinyasm.util.RefineCode.excludeLineNumber;
 import static cc1sj.tinyasm.util.RefineCode.skipToString;
+import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -25,6 +26,31 @@ import org.objectweb.asm.util.TraceClassVisitor;
 
 public class TinyAsmTestUtils {
 
+//	static public void assertCodeEquals(String message, byte[] expected, byte[] actual) {
+//
+////		String codeExpected = TinyAsmTestUtils.toString(expectedClazz);
+////
+////		try {
+////			String codeActual = TinyAsmTestUtils.toString(expectedClazz.getName(), dumpTinyAsm(expectedClazz));
+////
+////			assertEquals("Code", codeExpected, codeActual);
+////		} finally {
+////
+////			System.out.println(codeExpected);
+////
+////		}
+//	}
+
+	static public void assertCodeEquals(String message, Class<?> expected, byte[] actual) {
+
+		String codeExpected = TinyAsmTestUtils.toString(expected);
+
+		String codeActual = TinyAsmTestUtils.toString(expected.getName(), dumpTinyAsm(expected));
+
+		assertEquals(message, codeExpected, codeActual);
+
+	}
+
 	public static String tinyasmToString(Class<?> clazz) {
 		try {
 			ClassReader cr = new ClassReader(clazz.getName());
@@ -32,10 +58,22 @@ public class TinyAsmTestUtils {
 			PrintWriter pw = new PrintWriter(sw);
 			ClassVisitor visitor = new TraceClassVisitor(null, new TinyASMifier(), pw);
 			cr.accept(visitor, ClassReader.EXPAND_FRAMES);
-			return skipToString(excludeLineNumber(sw.toString()));
+
+			String strCode = sw.toString();
+			writeCodeToFile(clazz, strCode);
+			return skipToString(excludeLineNumber(strCode));
+
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	protected static void writeCodeToFile(Class<?> clazz, String strCode) {
+		writeCodeToFile(clazz.getName(), strCode);
+	}
+
+	protected static void writeCodeToFile(String className, String strCode) {
+		writeToFile(strCode, new File("tmp", System.currentTimeMillis() + className.replace('.', '_') + "_dump" + ".java"));
 	}
 
 	public static String toString(Class<?> clazz) {
@@ -45,20 +83,27 @@ public class TinyAsmTestUtils {
 			PrintWriter pw = new PrintWriter(sw);
 			ClassVisitor visitor = new TraceClassVisitor(null, new ASMifier(), pw);
 			cr.accept(visitor, ClassReader.EXPAND_FRAMES);
-			return skipToString(excludeLineNumber(sw.toString()));
+
+			String strCode = sw.toString();
+			writeCodeToFile(clazz, strCode);
+			return skipToString(excludeLineNumber(strCode));
+
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	public static String toString(byte[] code) {
+	public static String toString(String className, byte[] code) {
 		try {
 			ClassReader cr = new ClassReader(code);
 			StringWriter sw = new StringWriter();
 			PrintWriter pw = new PrintWriter(sw);
 			ClassVisitor visitor = new TraceClassVisitor(null, new ASMifier(), pw);
 			cr.accept(visitor, ClassReader.EXPAND_FRAMES);
-			return skipToString(excludeLineNumber(sw.toString()));
+
+			String strCode = sw.toString();
+			writeCodeToFile(className, strCode);
+			return skipToString(excludeLineNumber(strCode));
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
@@ -71,7 +116,11 @@ public class TinyAsmTestUtils {
 			PrintWriter pw = new PrintWriter(sw);
 			ClassVisitor visitor = new TraceClassVisitor(null, new ASMifier(), pw);
 			cr.accept(visitor, ClassReader.EXPAND_FRAMES);
-			return skipToString(excludeLineNumber(sw.toString()));
+
+			String strCode = sw.toString();
+
+			writeCodeToFile(className, strCode);
+			return skipToString(excludeLineNumber(strCode));
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -130,10 +179,10 @@ public class TinyAsmTestUtils {
 
 			String dumpClazz = expectClazzName + "TinyAsmDump";
 
-			File file = new File("src/test/java", dumpClazz.replace('.', '/') + ".java");
-			writeToFile(tingasmCreatedDumpCode, file);
-			complie2Class(file);
-			Class<?> clazz = loadClass(file, dumpClazz);
+			writeToFile(tingasmCreatedDumpCode, new File("src/test/java", dumpClazz.replace('.', '_') + ".java"));
+
+			complie2Class(new File("src/test/java", dumpClazz.replace('.', '/') + ".java"));
+			Class<?> clazz = loadClass(new File("src/test/java", dumpClazz.replace('.', '/') + ".java"), dumpClazz);
 			byte[] code = (byte[]) clazz.getMethod("dump").invoke(null);
 			return code;
 		} catch (Exception e) {

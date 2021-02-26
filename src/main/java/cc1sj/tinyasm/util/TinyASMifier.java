@@ -582,7 +582,7 @@ public class TinyASMifier extends Printer {
 	Map<String, String> methodNames = new HashMap<>();
 
 	@Override
-	public TinyASMifier visitMethod(final int access, final String name, final String descriptor, final String signature,
+	public Printer visitMethod(final int access, final String name, final String descriptor, final String signature,
 			final String[] exceptions) {
 		methodLocals = new TinyLocalsStack();
 
@@ -607,10 +607,10 @@ public class TinyASMifier extends Printer {
 
 		stringBuilder.setLength(0);
 
-		stringBuilder.append("protected static void ");
-		stringBuilder.append(codeMethodName);
-		stringBuilder.append("(ClassBody classBody) {\n");
-//		stringBuilder.append("{\n");
+//		stringBuilder.append("protected static void ");
+//		stringBuilder.append(codeMethodName);
+//		stringBuilder.append("(ClassBody classBody) {\n");
+		stringBuilder.append("{\n");
 		if (!methodIsStatic) {
 			stringBuilder.append("\tMethodCode code = classBody.method(");
 			if (access != (ACC_PUBLIC)) {

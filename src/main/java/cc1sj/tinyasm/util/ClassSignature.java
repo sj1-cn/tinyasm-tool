@@ -125,15 +125,20 @@ final class ClassSignature extends SignatureVisitor {
 		return super.visitArrayType();
 	}
 
+	static String toSimpleName(String str) {
+		return str.substring(str.lastIndexOf('.') + 1, str.length());
+	}
+	
 	@Override
 	public void visitClassType(String name) {
 		sb.append("Clazz.of(");
-//		sb.append(name.replace('/', '.'));
-//		if (array) {
-//			sb.append("[]");
-//		}
-//		sb.append(".class");
-		sb.append(TinyASMifier.clazzOf(Type.getObjectType(name), referedTypes));
+		String className =name.replace('/', '.');
+		referedTypes.put(name.replace('/', '.'), "");
+		sb.append(toSimpleName(className));
+		if (array) {
+			sb.append("[]");
+		}
+		sb.append(".class");
 		
 		TinyASMifier.logger.debug("{}visitClassType({})", indent(), name);
 		level++;

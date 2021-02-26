@@ -133,7 +133,7 @@ public class TinyASMifier extends Printer {
 	 */
 	protected TinyASMifier(final int api, final String visitorVariableName, final int annotationVisitorId) {
 		super(api);
-		this.visitname = visitorVariableName;
+		this.visitname ="\t\t" +  visitorVariableName;
 		this.id = annotationVisitorId;
 	}
 
@@ -149,8 +149,8 @@ public class TinyASMifier extends Printer {
 	 *                     occurs.
 	 */
 	public static void main(final String[] args) throws IOException {
-		String usage = "Prints the ASM code to generate the given class.\n"
-				+ "Usage: ASMifier [-debug] <fully qualified class name or class file name>";
+//		String usage = "Prints the ASM code to generate the given class.\n"
+//				+ "Usage: ASMifier [-debug] <fully qualified class name or class file name>";
 //		main(usage, new TinyASMifier(), args);
 	}
 
@@ -557,45 +557,45 @@ public class TinyASMifier extends Printer {
 
 	@Override
 	public void visitFrame(final int type, final int nLocal, final Object[] local, final int nStack, final Object[] stack) {
-		stringBuilder.setLength(0);
-		switch (type) {
-		case Opcodes.F_NEW:
-		case Opcodes.F_FULL:
-			declareFrameTypes(nLocal, local);
-			declareFrameTypes(nStack, stack);
-			if (type == Opcodes.F_NEW) {
-				stringBuilder.append(visitname).append(".visitFrame(Opcodes.F_NEW, ");
-			} else {
-				stringBuilder.append(visitname).append(".visitFrame(Opcodes.F_FULL, ");
-			}
-			stringBuilder.append(nLocal).append(NEW_OBJECT_ARRAY);
-			appendFrameTypes(nLocal, local);
-			stringBuilder.append("}, ").append(nStack).append(NEW_OBJECT_ARRAY);
-			appendFrameTypes(nStack, stack);
-			stringBuilder.append('}');
-			break;
-		case Opcodes.F_APPEND:
-			declareFrameTypes(nLocal, local);
-			stringBuilder.append(visitname).append(".visitFrame(Opcodes.F_APPEND,").append(nLocal).append(NEW_OBJECT_ARRAY);
-			appendFrameTypes(nLocal, local);
-			stringBuilder.append("}, 0, null");
-			break;
-		case Opcodes.F_CHOP:
-			stringBuilder.append(visitname).append(".visitFrame(Opcodes.F_CHOP,").append(nLocal).append(", null, 0, null");
-			break;
-		case Opcodes.F_SAME:
-			stringBuilder.append(visitname).append(".visitFrame(Opcodes.F_SAME, 0, null, 0, null");
-			break;
-		case Opcodes.F_SAME1:
-			declareFrameTypes(1, stack);
-			stringBuilder.append(visitname).append(".visitFrame(Opcodes.F_SAME1, 0, null, 1, new Object[] {");
-			appendFrameTypes(1, stack);
-			stringBuilder.append('}');
-			break;
-		default:
-			throw new IllegalArgumentException();
-		}
-		stringBuilder.append(");\n");
+//		stringBuilder.setLength(0);
+//		switch (type) {
+//		case Opcodes.F_NEW:
+//		case Opcodes.F_FULL:
+//			declareFrameTypes(nLocal, local);
+//			declareFrameTypes(nStack, stack);
+//			if (type == Opcodes.F_NEW) {
+//				stringBuilder.append(visitname).append(".visitFrame(Opcodes.F_NEW, ");
+//			} else {
+//				stringBuilder.append(visitname).append(".visitFrame(Opcodes.F_FULL, ");
+//			}
+//			stringBuilder.append(nLocal).append(NEW_OBJECT_ARRAY);
+//			appendFrameTypes(nLocal, local);
+//			stringBuilder.append("}, ").append(nStack).append(NEW_OBJECT_ARRAY);
+//			appendFrameTypes(nStack, stack);
+//			stringBuilder.append('}');
+//			break;
+//		case Opcodes.F_APPEND:
+//			declareFrameTypes(nLocal, local);
+//			stringBuilder.append(visitname).append(".visitFrame(Opcodes.F_APPEND,").append(nLocal).append(NEW_OBJECT_ARRAY);
+//			appendFrameTypes(nLocal, local);
+//			stringBuilder.append("}, 0, null");
+//			break;
+//		case Opcodes.F_CHOP:
+//			stringBuilder.append(visitname).append(".visitFrame(Opcodes.F_CHOP,").append(nLocal).append(", null, 0, null");
+//			break;
+//		case Opcodes.F_SAME:
+//			stringBuilder.append(visitname).append(".visitFrame(Opcodes.F_SAME, 0, null, 0, null");
+//			break;
+//		case Opcodes.F_SAME1:
+//			declareFrameTypes(1, stack);
+//			stringBuilder.append(visitname).append(".visitFrame(Opcodes.F_SAME1, 0, null, 1, new Object[] {");
+//			appendFrameTypes(1, stack);
+//			stringBuilder.append('}');
+//			break;
+//		default:
+//			throw new IllegalArgumentException();
+//		}
+//		stringBuilder.append(");\n");
 //		text.add(stringBuilder.toString());
 	}
 

@@ -159,21 +159,21 @@ public class TinyASMifier extends Printer {
 	// -----------------------------------------------------------------------------------------------
 
 	String className;
-	
-	class HolderReferTypes{
+
+	class HolderReferTypes {
 
 		@Override
 		public String toString() {
 			StringBuilder sb = new StringBuilder();
-			
-			for(String key : referedTypes.keySet()) {
+
+			for (String key : referedTypes.keySet()) {
 				sb.append("import ");
 				sb.append(key);
 				sb.append(";\n");
 			}
 			return sb.toString();
 		}
-		
+
 	}
 
 	@Override
@@ -222,12 +222,12 @@ public class TinyASMifier extends Printer {
 		text.add("import cc1sj.tinyasm.Annotation;\n");
 		text.add("import cc1sj.tinyasm.Clazz;\n");
 		text.add(new HolderReferTypes());
-		
+
 		text.add("@SuppressWarnings(\"unused\")\n");
 
 		text.add("public class " + simpleName + "TinyAsmDump {\n\n");
 		text.add("public static byte[] dump () throws Exception {\n\n");
-		
+
 //    text.add("ClassWriter classBody = new ClassWriter(0);\n");
 //    text.add("FieldVisitor fieldVisitor;\n");
 //    text.add("MethodVisitor methodVisitor;\n");
@@ -295,11 +295,11 @@ public class TinyASMifier extends Printer {
 			stringBuilder.append(")");
 		}
 		stringBuilder.append(".body();\n\n");
+//		stringBuilder.append("}\\n");
+		/// text.add("classBody.visitEnd();\n\n");
 		this.annotation = new Annotation();
 		text.add(stringBuilder.toString());
 	}
-
-	
 
 //	class ClazzBuilder {
 //		ClazzBuilder parent;
@@ -439,17 +439,18 @@ public class TinyASMifier extends Printer {
 		typeMaps.put("[D", "double[].class");
 	}
 
-	Map<String,String> referedTypes = new HashMap<String, String>();
+	Map<String, String> referedTypes = new HashMap<String, String>();
+
 	private String clazzOf(Type type) {
 		logger.trace("clazzOf({})", type);
 		if (typeMaps.containsKey(type.getInternalName())) {
 			return typeMaps.get(type.getInternalName());
 		} else if (type.getSort() == Type.ARRAY && type.getElementType().getSort() == Type.OBJECT) {
 			logger.debug("{} Array", type.getElementType());
-			referedTypes.put(type.getElementType().getClassName(),"");
+			referedTypes.put(type.getElementType().getClassName(), "");
 			return toSimpleName(type.getElementType().getClassName()) + "[].class";
 		} else if (type.getSort() == Type.OBJECT) {
-			referedTypes.put(type.getClassName(),"");
+			referedTypes.put(type.getClassName(), "");
 			return toSimpleName(type.getClassName()) + ".class";
 		}
 
@@ -464,9 +465,9 @@ public class TinyASMifier extends Printer {
 //		}
 //		return null;
 	}
-	
+
 	String toSimpleName(String str) {
-		return str.substring(str.lastIndexOf('.')+1,str.length());
+		return str.substring(str.lastIndexOf('.') + 1, str.length());
 	}
 
 	@Override
@@ -578,11 +579,20 @@ public class TinyASMifier extends Printer {
 
 	Type[] methodParamTypes;
 	List<StringBuilder> methodParamClazzes;
+	Map<String, String> methodNames = new HashMap<>();
 
 	@Override
 	public TinyASMifier visitMethod(final int access, final String name, final String descriptor, final String signature,
 			final String[] exceptions) {
 		methodLocals = new TinyLocalsStack();
+
+		Type returnType = Type.getReturnType(descriptor);
+		methodParamTypes = Type.getArgumentTypes(descriptor);
+		String codeMethodName = name.replaceAll("[<>]", "_");
+		codeMethodName = !methodNames.containsKey(codeMethodName) ? codeMethodName : nameWithParameter(codeMethodName, methodParamTypes);
+		methodNames.put(codeMethodName, codeMethodName);
+
+//protected static void setConnection(ClassBody classBody) {
 
 		logger.debug("visitMethod(final int access, final String {}, final String {}, final String {}, final String[] exceptions)", name,
 				descriptor, signature);
@@ -596,7 +606,11 @@ public class TinyASMifier extends Printer {
 		}
 
 		stringBuilder.setLength(0);
-		stringBuilder.append("{\n");
+
+		stringBuilder.append("protected static void ");
+		stringBuilder.append(codeMethodName);
+		stringBuilder.append("(ClassBody classBody) {\n");
+//		stringBuilder.append("{\n");
 		if (!methodIsStatic) {
 			stringBuilder.append("\tMethodCode code = classBody.method(");
 			if (access != (ACC_PUBLIC)) {
@@ -610,8 +624,6 @@ public class TinyASMifier extends Printer {
 				stringBuilder.append(", ");
 			}
 		}
-		Type returnType = Type.getReturnType(descriptor);
-		methodParamTypes = Type.getArgumentTypes(descriptor);
 		methodParamClazzes = null;
 		if (signature == null) {
 			if (returnType != Type.VOID_TYPE) {
@@ -666,9 +678,18 @@ public class TinyASMifier extends Printer {
 		return asmifier;
 	}
 
+	private String nameWithParameter(String name, Type[] methodParamTypes2) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(name);
+		for (Type type : methodParamTypes2) {
+			sb.append("_");
+			sb.append(type.getClassName().replace("java.lang", "").replaceAll(".", ""));
+		}
+		return sb.toString();
+	}
+
 	@Override
 	public void visitClassEnd() {
-///		text.add("classBody.visitEnd();\n\n");
 		text.add("return classBody.end().toByteArray();\n");
 		text.add("}\n");
 		text.add("}\n");

@@ -69,13 +69,15 @@ public class RefineCode {
 
 		input = input.replaceAll("methodVisitor.visitLocalVariable\\(\\\"this\\$0\\\"[^\\n]*;\\n", "");
 
+		//内部生成的Class。
+		input = input.replaceAll("Label label1 = new Label\\(\\);\\n" + "methodVisitor.visitLabel\\(label1\\);\\n"
+				+ "methodVisitor.visitLocalVariable\\(\"this\",[^\\n]*;\\n", "");
+		
 		input = input.replaceAll(
 				visit("methodVisitor.visitLocalVariable", TYPE.STRING, TYPE.STRING, TYPE.STRING, TYPE.NAME, TYPE.NAME, TYPE.NAME),
 				"methodVisitor.visitLocalVariable(local,$2,$3,l0,l1,$6);\n");
 
-		//内部生成的Class。
-		input = input.replaceAll("Label label1 = new Label\\(\\);\\n" + "methodVisitor.visitLabel\\(label1\\);\\n"
-				+ "methodVisitor.visitLocalVariable\\(\"this\",[^\\n]*;\\n", "");
+		
 //		add(,
 //				);
 //		

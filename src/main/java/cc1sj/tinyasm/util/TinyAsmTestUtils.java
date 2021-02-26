@@ -179,7 +179,7 @@ public class TinyAsmTestUtils {
 
 			String dumpClazz = expectClazzName + "TinyAsmDump";
 
-			writeToFile(tingasmCreatedDumpCode, new File("src/test/java", dumpClazz.replace('.', '_') + ".java"));
+			writeToFile(tingasmCreatedDumpCode, new File("src/test/java", dumpClazz.replace('.', '/') + ".java"));
 
 			complie2Class(new File("src/test/java", dumpClazz.replace('.', '/') + ".java"));
 			Class<?> clazz = loadClass(new File("src/test/java", dumpClazz.replace('.', '/') + ".java"), dumpClazz);

@@ -29,6 +29,7 @@ package cc1sj.tinyasm.util;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -54,9 +55,14 @@ import cc1sj.tinyasm.util.TinyLocalsStack.Var;
  *
  * @author Eric Bruneton
  */
-@SuppressWarnings("deprecation")
+//@SuppressWarnings("deprecation")
 public class TinyASMifier extends Printer {
 	static Logger logger = LoggerFactory.getLogger(TinyASMifier.class);
+
+	/** The help message shown when command line arguments are incorrect. */
+	@SuppressWarnings("unused")
+	private static final String USAGE = "Prints the ASM code to generate the given class.\n"
+			+ "Usage: ASMifier [-nodebug] <fully qualified class name or class file name>";
 
 	/** A pseudo access flag used to distinguish class access flags. */
 	private static final int ACCESS_CLASS = 0x40000;
@@ -72,16 +78,20 @@ public class TinyASMifier extends Printer {
 
 	private static final String ANNOTATION_VISITOR = "annotationVisitor";
 	private static final String ANNOTATION_VISITOR0 = "annotationVisitor0 = ";
-	private static final String NEW_OBJECT_ARRAY = ", new Object[] {";
+	private static final String COMMA = "\", \"";
 	private static final String END_ARRAY = " });\n";
 	private static final String END_PARAMETERS = ");\n\n";
+	private static final String NEW_OBJECT_ARRAY = ", new Object[] {";
 	private static final String VISIT_END = ".visitEnd();\n";
+
+	private static final List<String> FRAME_TYPES = Collections.unmodifiableList(Arrays.asList("Opcodes.TOP", "Opcodes.INTEGER",
+			"Opcodes.FLOAT", "Opcodes.DOUBLE", "Opcodes.LONG", "Opcodes.NULL", "Opcodes.UNINITIALIZED_THIS"));
 
 	@SuppressWarnings("unused")
 	private static final Map<Integer, String> CLASS_VERSIONS;
 
 	static {
-		HashMap<Integer, String> classVersions = new HashMap<Integer, String>();
+		HashMap<Integer, String> classVersions = new HashMap<>();
 		classVersions.put(Opcodes.V1_1, "V1_1");
 		classVersions.put(Opcodes.V1_2, "V1_2");
 		classVersions.put(Opcodes.V1_3, "V1_3");
@@ -93,6 +103,12 @@ public class TinyASMifier extends Printer {
 		classVersions.put(Opcodes.V9, "V9");
 		classVersions.put(Opcodes.V10, "V10");
 		classVersions.put(Opcodes.V11, "V11");
+		classVersions.put(Opcodes.V12, "V12");
+		classVersions.put(Opcodes.V13, "V13");
+		classVersions.put(Opcodes.V14, "V14");
+		classVersions.put(Opcodes.V15, "V15");
+		classVersions.put(Opcodes.V16, "V16");
+		classVersions.put(Opcodes.V17, "V17");
 		CLASS_VERSIONS = Collections.unmodifiableMap(classVersions);
 	}
 
@@ -113,7 +129,7 @@ public class TinyASMifier extends Printer {
 	 * @throws IllegalStateException If a subclass calls this constructor.
 	 */
 	public TinyASMifier() {
-		this(Opcodes.ASM6, "classBody", 0);
+		this(/* latest api = */ Opcodes.ASM9, "classBody", 0);
 		if (getClass() != TinyASMifier.class) {
 			throw new IllegalStateException();
 		}
@@ -124,8 +140,9 @@ public class TinyASMifier extends Printer {
 	 *
 	 * @param api                 the ASM API version implemented by this class.
 	 *                            Must be one of {@link Opcodes#ASM4},
-	 *                            {@link Opcodes#ASM5}, {@link Opcodes#ASM6} or
-	 *                            {@link Opcodes#ASM7_EXPERIMENTAL}.
+	 *                            {@link Opcodes#ASM5}, {@link Opcodes#ASM6},
+	 *                            {@link Opcodes#ASM7}, {@link Opcodes#ASM8} or
+	 *                            {@link Opcodes#ASM9}.
 	 * @param visitorVariableName the name of the visitor variable in the produced
 	 *                            code.
 	 * @param annotationVisitorId identifier of the annotation visitor variable in
@@ -133,7 +150,7 @@ public class TinyASMifier extends Printer {
 	 */
 	protected TinyASMifier(final int api, final String visitorVariableName, final int annotationVisitorId) {
 		super(api);
-		this.visitname ="\t\t" +  visitorVariableName;
+		this.visitname = "\t\t" + visitorVariableName;
 		this.id = annotationVisitorId;
 	}
 
@@ -142,17 +159,31 @@ public class TinyASMifier extends Printer {
 	 * output.
 	 *
 	 * <p>
-	 * Usage: ASMifier [-debug] &lt;binary class name or class file name&gt;
+	 * Usage: ASMifier [-nodebug] &lt;binary class name or class file name&gt;
 	 *
 	 * @param args the command line arguments.
 	 * @throws IOException if the class cannot be found, or if an IOException
 	 *                     occurs.
 	 */
-	public static void main(final String[] args) throws IOException {
-//		String usage = "Prints the ASM code to generate the given class.\n"
-//				+ "Usage: ASMifier [-debug] <fully qualified class name or class file name>";
-//		main(usage, new TinyASMifier(), args);
-	}
+//	public static void main(final String[] args) throws IOException {
+//		main(args, new PrintWriter(System.out, true), new PrintWriter(System.err, true));
+//	}
+
+	/**
+	 * Prints the ASM source code to generate the given class to the given output.
+	 *
+	 * <p>
+	 * Usage: ASMifier [-nodebug] &lt;binary class name or class file name&gt;
+	 *
+	 * @param args   the command line arguments.
+	 * @param output where to print the result.
+	 * @param logger where to log errors.
+	 * @throws IOException if the class cannot be found, or if an IOException
+	 *                     occurs.
+	 */
+//	static void main(final String[] args, final PrintWriter output, final PrintWriter logger) throws IOException {
+//		main(args, USAGE, new TinyASMifier(), output, logger);
+//	}
 
 	// -----------------------------------------------------------------------------------------------
 	// Classes
@@ -194,13 +225,14 @@ public class TinyASMifier extends Printer {
 	}
 
 	@Override
-	public void visitNestHostExperimental(final String nestHost) {
+	public void visitNestHost(final String nestHost) {
 		stringBuilder.setLength(0);
-		stringBuilder.append("classBody.visitNestHostExperimental(");
+		stringBuilder.append("classBody.visitNestHost(");
 		appendConstant(nestHost);
-		stringBuilder.append(");\n\n");
+		stringBuilder.append(END_PARAMETERS);
 		text.add(stringBuilder.toString());
 	}
+
 
 	@Override
 	public void visitOuterClass(final String owner, final String name, final String descriptor) {
@@ -232,13 +264,23 @@ public class TinyASMifier extends Printer {
 	}
 
 	@Override
-	public void visitNestMemberExperimental(final String nestMember) {
+	public void visitNestMember(final String nestMember) {
 		stringBuilder.setLength(0);
-		stringBuilder.append("classBody.visitNestMemberExperimental(");
+		stringBuilder.append("classBody.visitNestMember(");
 		appendConstant(nestMember);
-		stringBuilder.append(");\n\n");
-//		text.add(stringBuilder.toString());
+		stringBuilder.append(END_PARAMETERS);
+		text.add(stringBuilder.toString());
 	}
+
+	@Override
+	public void visitPermittedSubclass(final String permittedSubclass) {
+		stringBuilder.setLength(0);
+		stringBuilder.append("classBody.visitPermittedSubclass(");
+		appendConstant(permittedSubclass);
+		stringBuilder.append(END_PARAMETERS);
+		text.add(stringBuilder.toString());
+	}
+
 
 	@Override
 	public void visitInnerClass(final String name, final String outerName, final String innerName, final int access) {
@@ -253,6 +295,24 @@ public class TinyASMifier extends Printer {
 		appendAccessFlags(access | ACCESS_INNER);
 		stringBuilder.append(END_PARAMETERS);
 //		text.add(stringBuilder.toString());
+	}
+
+	@Override
+	public TinyASMifier visitRecordComponent(final String name, final String descriptor, final String signature) {
+		stringBuilder.setLength(0);
+		stringBuilder.append("{\n");
+		stringBuilder.append("recordComponentVisitor = classBody.visitRecordComponent(");
+		appendConstant(name);
+		stringBuilder.append(", ");
+		appendConstant(descriptor);
+		stringBuilder.append(", ");
+		appendConstant(signature);
+		stringBuilder.append(");\n");
+		text.add(stringBuilder.toString());
+		TinyASMifier asmifier = createASMifier("recordComponentVisitor", 0);
+		text.add(asmifier.getText());
+		text.add("}\n");
+		return asmifier;
 	}
 
 	@Override
@@ -327,27 +387,17 @@ public class TinyASMifier extends Printer {
 
 	@Override
 	public void visitExport(final String packaze, final int access, final String... modules) {
-		stringBuilder.setLength(0);
-		stringBuilder.append("moduleVisitor.visitExport(");
-		appendConstant(packaze);
-		stringBuilder.append(", ");
-		appendAccessFlags(access | ACCESS_MODULE);
-		if (modules != null && modules.length > 0) {
-			stringBuilder.append(", new String[] {");
-			for (int i = 0; i < modules.length; ++i) {
-				stringBuilder.append(i == 0 ? " " : ", ");
-				appendConstant(modules[i]);
-			}
-			stringBuilder.append(" }");
-		}
-		stringBuilder.append(");\n");
-		text.add(stringBuilder.toString());
+		visitExportOrOpen("moduleVisitor.visitExport(", packaze, access, modules);
 	}
 
 	@Override
 	public void visitOpen(final String packaze, final int access, final String... modules) {
+		visitExportOrOpen("moduleVisitor.visitOpen(", packaze, access, modules);
+	}
+
+	private void visitExportOrOpen(final String visitMethod, final String packaze, final int access, final String... modules) {
 		stringBuilder.setLength(0);
-		stringBuilder.append("moduleVisitor.visitOpen(");
+		stringBuilder.append(visitMethod);
 		appendConstant(packaze);
 		stringBuilder.append(", ");
 		appendAccessFlags(access | ACCESS_MODULE);
@@ -395,10 +445,15 @@ public class TinyASMifier extends Printer {
 	// Annotations
 	// -----------------------------------------------------------------------------------------------
 
+	// DontCheck(OverloadMethodsDeclarationOrder): overloads are semantically
+	// different.
 	@Override
 	public void visit(final String name, final Object value) {
 		this.tiny_annotation.keys.add(name);
 		stringBuilder.setLength(0);
+//		stringBuilder.append(ANNOTATION_VISITOR).append(id).append(".visit(");
+//		appendConstant(name);
+//		stringBuilder.append(", ");
 		appendConstant(value);
 		this.tiny_annotation.values.add(stringBuilder.toString());
 	}
@@ -454,6 +509,31 @@ public class TinyASMifier extends Printer {
 		stringBuilder.setLength(0);
 		stringBuilder.append(ANNOTATION_VISITOR).append(id).append(VISIT_END);
 //		text.add(stringBuilder.toString());
+	}
+
+	// -----------------------------------------------------------------------------------------------
+	// Record components
+	// -----------------------------------------------------------------------------------------------
+
+	@Override
+	public TinyASMifier visitRecordComponentAnnotation(final String descriptor, final boolean visible) {
+		return visitAnnotation(descriptor, visible);
+	}
+
+	@Override
+	public TinyASMifier visitRecordComponentTypeAnnotation(final int typeRef, final TypePath typePath, final String descriptor,
+			final boolean visible) {
+		return visitTypeAnnotation(typeRef, typePath, descriptor, visible);
+	}
+
+	@Override
+	public void visitRecordComponentAttribute(final Attribute attribute) {
+		visitAttribute(attribute);
+	}
+
+	@Override
+	public void visitRecordComponentEnd() {
+		visitMemberEnd();
 	}
 
 	// -----------------------------------------------------------------------------------------------
@@ -556,32 +636,32 @@ public class TinyASMifier extends Printer {
 	}
 
 	@Override
-	public void visitFrame(final int type, final int nLocal, final Object[] local, final int nStack, final Object[] stack) {
+	public void visitFrame(final int type, final int numLocal, final Object[] local, final int numStack, final Object[] stack) {
 //		stringBuilder.setLength(0);
 //		switch (type) {
 //		case Opcodes.F_NEW:
 //		case Opcodes.F_FULL:
-//			declareFrameTypes(nLocal, local);
-//			declareFrameTypes(nStack, stack);
+//			declareFrameTypes(numLocal, local);
+//			declareFrameTypes(numStack, stack);
 //			if (type == Opcodes.F_NEW) {
 //				stringBuilder.append(visitname).append(".visitFrame(Opcodes.F_NEW, ");
 //			} else {
 //				stringBuilder.append(visitname).append(".visitFrame(Opcodes.F_FULL, ");
 //			}
-//			stringBuilder.append(nLocal).append(NEW_OBJECT_ARRAY);
-//			appendFrameTypes(nLocal, local);
-//			stringBuilder.append("}, ").append(nStack).append(NEW_OBJECT_ARRAY);
-//			appendFrameTypes(nStack, stack);
+//			stringBuilder.append(numLocal).append(NEW_OBJECT_ARRAY);
+//			appendFrameTypes(numLocal, local);
+//			stringBuilder.append("}, ").append(numStack).append(NEW_OBJECT_ARRAY);
+//			appendFrameTypes(numStack, stack);
 //			stringBuilder.append('}');
 //			break;
 //		case Opcodes.F_APPEND:
-//			declareFrameTypes(nLocal, local);
-//			stringBuilder.append(visitname).append(".visitFrame(Opcodes.F_APPEND,").append(nLocal).append(NEW_OBJECT_ARRAY);
-//			appendFrameTypes(nLocal, local);
+//			declareFrameTypes(numLocal, local);
+//			stringBuilder.append(visitname).append(".visitFrame(Opcodes.F_APPEND,").append(numLocal).append(NEW_OBJECT_ARRAY);
+//			appendFrameTypes(numLocal, local);
 //			stringBuilder.append("}, 0, null");
 //			break;
 //		case Opcodes.F_CHOP:
-//			stringBuilder.append(visitname).append(".visitFrame(Opcodes.F_CHOP,").append(nLocal).append(", null, 0, null");
+//			stringBuilder.append(visitname).append(".visitFrame(Opcodes.F_CHOP,").append(numLocal).append(", null, 0, null");
 //			break;
 //		case Opcodes.F_SAME:
 //			stringBuilder.append(visitname).append(".visitFrame(Opcodes.F_SAME, 0, null, 0, null");
@@ -654,7 +734,6 @@ public class TinyASMifier extends Printer {
 	@Override
 	public void visitInvokeDynamicInsn(final String name, final String descriptor, final Handle bootstrapMethodHandle,
 			final Object... bootstrapMethodArguments) {
-		// case INVOKEDYNAMIC: // 186; // visitInvokeDynamicInsn
 		stringBuilder.setLength(0);
 		stringBuilder.append(this.visitname).append(".visitInvokeDynamicInsn(");
 		appendConstant(name);
@@ -722,8 +801,8 @@ public class TinyASMifier extends Printer {
 	@Override
 	public void visitTableSwitchInsn(final int min, final int max, final Label dflt, final Label... labels) {
 		stringBuilder.setLength(0);
-		for (int i = 0; i < labels.length; ++i) {
-			declareLabel(labels[i]);
+		for (Label label : labels) {
+			declareLabel(label);
 		}
 		declareLabel(dflt);
 
@@ -741,8 +820,8 @@ public class TinyASMifier extends Printer {
 	@Override
 	public void visitLookupSwitchInsn(final Label dflt, final int[] keys, final Label[] labels) {
 		stringBuilder.setLength(0);
-		for (int i = 0; i < labels.length; ++i) {
-			declareLabel(labels[i]);
+		for (Label label : labels) {
+			declareLabel(label);
 		}
 		declareLabel(dflt);
 
@@ -881,7 +960,7 @@ public class TinyASMifier extends Printer {
 	 * Visits a class, field or method annotation.
 	 *
 	 * @param descriptor the class descriptor of the annotation class.
-	 * @param visible    <tt>true</tt> if the annotation is visible at runtime.
+	 * @param visible    {@literal true} if the annotation is visible at runtime.
 	 * @return a new {@link TinyASMifier} to visit the annotation values.
 	 */
 	public TinyASMifier visitAnnotation(final String descriptor, final boolean visible) {
@@ -905,10 +984,10 @@ public class TinyASMifier extends Printer {
 	 *                   {@link org.objectweb.asm.TypeReference}.
 	 * @param typePath   the path to the annotated type argument, wildcard bound,
 	 *                   array element type, or static inner type within 'typeRef'.
-	 *                   May be <tt>null</tt> if the annotation targets 'typeRef' as
-	 *                   a whole.
+	 *                   May be {@literal null} if the annotation targets 'typeRef'
+	 *                   as a whole.
 	 * @param descriptor the class descriptor of the annotation class.
-	 * @param visible    <tt>true</tt> if the annotation is visible at runtime.
+	 * @param visible    {@literal true} if the annotation is visible at runtime.
 	 * @return a new {@link TinyASMifier} to visit the annotation values.
 	 */
 	public TinyASMifier visitTypeAnnotation(final int typeRef, final TypePath typePath, final String descriptor, final boolean visible) {
@@ -926,10 +1005,10 @@ public class TinyASMifier extends Printer {
 	 *                   {@link org.objectweb.asm.TypeReference}.
 	 * @param typePath   the path to the annotated type argument, wildcard bound,
 	 *                   array element type, or static inner type within 'typeRef'.
-	 *                   May be <tt>null</tt> if the annotation targets 'typeRef' as
-	 *                   a whole.
+	 *                   May be {@literal null} if the annotation targets 'typeRef'
+	 *                   as a whole.
 	 * @param descriptor the class descriptor of the annotation class.
-	 * @param visible    <tt>true</tt> if the annotation is visible at runtime.
+	 * @param visible    {@literal true} if the annotation is visible at runtime.
 	 * @return a new {@link TinyASMifier} to visit the annotation values.
 	 */
 	public TinyASMifier visitTypeAnnotation(final String method, final int typeRef, final TypePath typePath, final String descriptor,
@@ -973,6 +1052,13 @@ public class TinyASMifier extends Printer {
 //		text.add(stringBuilder.toString());
 	}
 
+	/** Visits the end of a field, record component or method. */
+	private void visitMemberEnd() {
+		stringBuilder.setLength(0);
+		stringBuilder.append(visitname).append(VISIT_END);
+		text.add(stringBuilder.toString());
+	}
+
 	// -----------------------------------------------------------------------------------------------
 	// Utility methods
 	// -----------------------------------------------------------------------------------------------
@@ -986,8 +1072,10 @@ public class TinyASMifier extends Printer {
 	 *                            the produced code.
 	 * @return a new {@link TinyASMifier}.
 	 */
+	// DontCheck(AbbreviationAsWordInName): can't be renamed (for backward binary
+	// compatibility).
 	protected TinyASMifier createASMifier(final String visitorVariableName, final int annotationVisitorId) {
-		return new TinyASMifier(Opcodes.ASM6, visitorVariableName, annotationVisitorId);
+		return new TinyASMifier(api, visitorVariableName, annotationVisitorId);
 	}
 
 	/**
@@ -1128,6 +1216,13 @@ public class TinyASMifier extends Printer {
 			stringBuilder.append("ACC_DEPRECATED");
 			isEmpty = false;
 		}
+		if ((accessFlags & Opcodes.ACC_RECORD) != 0) {
+			if (!isEmpty) {
+				stringBuilder.append(" | ");
+			}
+			stringBuilder.append("ACC_RECORD");
+			isEmpty = false;
+		}
 		if ((accessFlags & (Opcodes.ACC_MANDATED | Opcodes.ACC_MODULE)) != 0) {
 			if (!isEmpty) {
 				stringBuilder.append(" | ");
@@ -1151,7 +1246,7 @@ public class TinyASMifier extends Printer {
 	 * @param value a {@link String}, {@link Type}, {@link Handle}, {@link Byte},
 	 *              {@link Short}, {@link Character}, {@link Integer},
 	 *              {@link Float}, {@link Long} or {@link Double} object, or an
-	 *              array of primitive values. May be <tt>null</tt>.
+	 *              array of primitive values. May be {@literal null}.
 	 */
 	protected void appendConstant(final Object value) {
 		if (value == null) {
@@ -1166,21 +1261,21 @@ public class TinyASMifier extends Printer {
 			stringBuilder.append("new Handle(");
 			Handle handle = (Handle) value;
 			stringBuilder.append("Opcodes.").append(HANDLE_TAG[handle.getTag()]).append(", \"");
-			stringBuilder.append(handle.getOwner()).append("\", \"");
-			stringBuilder.append(handle.getName()).append("\", \"");
+			stringBuilder.append(handle.getOwner()).append(COMMA);
+			stringBuilder.append(handle.getName()).append(COMMA);
 			stringBuilder.append(handle.getDesc()).append("\", ");
 			stringBuilder.append(handle.isInterface()).append(")");
 		} else if (value instanceof ConstantDynamic) {
 			stringBuilder.append("new ConstantDynamic(\"");
 			ConstantDynamic constantDynamic = (ConstantDynamic) value;
-			stringBuilder.append(constantDynamic.getName()).append("\", \"");
+			stringBuilder.append(constantDynamic.getName()).append(COMMA);
 			stringBuilder.append(constantDynamic.getDescriptor()).append("\", ");
 			appendConstant(constantDynamic.getBootstrapMethod());
-			stringBuilder.append(", new Object[] {");
-			Object[] bootstrapMethodArguments = constantDynamic.getBootstrapMethodArguments();
-			for (int i = 0; i < bootstrapMethodArguments.length; ++i) {
-				appendConstant(bootstrapMethodArguments[i]);
-				if (i != bootstrapMethodArguments.length - 1) {
+			stringBuilder.append(NEW_OBJECT_ARRAY);
+			int bootstrapMethodArgumentCount = constantDynamic.getBootstrapMethodArgumentCount();
+			for (int i = 0; i < bootstrapMethodArgumentCount; ++i) {
+				appendConstant(constantDynamic.getBootstrapMethodArgument(i));
+				if (i != bootstrapMethodArgumentCount - 1) {
 					stringBuilder.append(", ");
 				}
 			}
@@ -1264,12 +1359,13 @@ public class TinyASMifier extends Printer {
 	 * Calls {@link #declareLabel} for each label in the given stack map frame
 	 * types.
 	 *
-	 * @param nTypes     the number of stack map frame types in 'frameTypes'.
+	 * @param numTypes   the number of stack map frame types in 'frameTypes'.
 	 * @param frameTypes an array of stack map frame types, in the format described
 	 *                   in {@link org.objectweb.asm.MethodVisitor#visitFrame}.
 	 */
-	private void declareFrameTypes(final int nTypes, final Object[] frameTypes) {
-		for (int i = 0; i < nTypes; ++i) {
+	@SuppressWarnings("unused")
+	private void declareFrameTypes(final int numTypes, final Object[] frameTypes) {
+		for (int i = 0; i < numTypes; ++i) {
 			if (frameTypes[i] instanceof Label) {
 				declareLabel((Label) frameTypes[i]);
 			}
@@ -1279,43 +1375,20 @@ public class TinyASMifier extends Printer {
 	/**
 	 * Appends the given stack map frame types to {@link #stringBuilder}.
 	 *
-	 * @param nTypes     the number of stack map frame types in 'frameTypes'.
+	 * @param numTypes   the number of stack map frame types in 'frameTypes'.
 	 * @param frameTypes an array of stack map frame types, in the format described
 	 *                   in {@link org.objectweb.asm.MethodVisitor#visitFrame}.
 	 */
-	private void appendFrameTypes(final int nTypes, final Object[] frameTypes) {
-		for (int i = 0; i < nTypes; ++i) {
+	@SuppressWarnings("unused")
+	private void appendFrameTypes(final int numTypes, final Object[] frameTypes) {
+		for (int i = 0; i < numTypes; ++i) {
 			if (i > 0) {
 				stringBuilder.append(", ");
 			}
 			if (frameTypes[i] instanceof String) {
 				appendConstant(frameTypes[i]);
 			} else if (frameTypes[i] instanceof Integer) {
-				switch (((Integer) frameTypes[i]).intValue()) {
-				case 0:
-					stringBuilder.append("Opcodes.TOP");
-					break;
-				case 1:
-					stringBuilder.append("Opcodes.INTEGER");
-					break;
-				case 2:
-					stringBuilder.append("Opcodes.FLOAT");
-					break;
-				case 3:
-					stringBuilder.append("Opcodes.DOUBLE");
-					break;
-				case 4:
-					stringBuilder.append("Opcodes.LONG");
-					break;
-				case 5:
-					stringBuilder.append("Opcodes.NULL");
-					break;
-				case 6:
-					stringBuilder.append("Opcodes.UNINITIALIZED_THIS");
-					break;
-				default:
-					throw new IllegalArgumentException();
-				}
+				stringBuilder.append(FRAME_TYPES.get(((Integer) frameTypes[i]).intValue()));
 			} else {
 				appendLabel((Label) frameTypes[i]);
 			}
@@ -1331,7 +1404,7 @@ public class TinyASMifier extends Printer {
 	 */
 	protected void declareLabel(final Label label) {
 		if (labelNames == null) {
-			labelNames = new HashMap<Label, String>();
+			labelNames = new HashMap<>();
 		}
 		String labelName = labelNames.get(label);
 		if (labelName == null) {
@@ -1378,7 +1451,7 @@ public class TinyASMifier extends Printer {
 	 */
 
 	String tiny_className;
-	
+
 	TinyLocalsStack tiny_methodLocals = new TinyLocalsStack();;
 
 	List<Object> tiny_textMethods = new ArrayList<Object>();
@@ -1530,133 +1603,139 @@ public class TinyASMifier extends Printer {
 	}
 
 	protected void tiny_visit(final int access, final String name, final String signature, final String superName,
-				final String[] interfaces) {
-			String simpleName;
-			this.tiny_className = name;
-			if (name == null) {
-				simpleName = "module-info";
+			final String[] interfaces) {
+		String simpleName;
+		this.tiny_className = name;
+		if (name == null) {
+			simpleName = "module-info";
+		} else {
+			int lastSlashIndex = name.lastIndexOf('/');
+			if (lastSlashIndex == -1) {
+				simpleName = name;
 			} else {
-				int lastSlashIndex = name.lastIndexOf('/');
-				if (lastSlashIndex == -1) {
-					simpleName = name;
-				} else {
-					text.add("package " + name.substring(0, lastSlashIndex).replace('/', '.') + ";\n");
-					simpleName = name.substring(lastSlashIndex + 1).replace('-', '_');
-				}
-	
+				text.add("package " + name.substring(0, lastSlashIndex).replace('/', '.') + ";\n");
+				simpleName = name.substring(lastSlashIndex + 1).replace('-', '_');
 			}
-	
-	//		  SignatureWriter sw = new SignatureWriter();
-	//	        SignatureVisitor sa = new AddGernicMVisiter(sw);
-	//	        SignatureReader sr = new SignatureReader(s1);
-	//	        sr.acceptType(sa);
-	//	        return sw.toString();
-	//    text.add("import org.objectweb.asm.AnnotationVisitor;\n");
-	//    text.add("import org.objectweb.asm.Attribute;\n");
-	//    text.add("import org.objectweb.asm.ClassReader;\n");
-	//    text.add("import org.objectweb.asm.ClassWriter;\n");
-	//    text.add("import org.objectweb.asm.ConstantDynamic;\n");
-	//    text.add("import org.objectweb.asm.FieldVisitor;\n");
-	//    text.add("import org.objectweb.asm.Handle;\n");
-			text.add("import org.objectweb.asm.Label;\n");
-	//    text.add("import org.objectweb.asm.MethodVisitor;\n");
-	//    text.add("import org.objectweb.asm.Opcodes;\n");
-	//    text.add("import org.objectweb.asm.Type;\n");
-	//    text.add("import org.objectweb.asm.TypePath;\n");
-	
-			text.add("import cc1sj.tinyasm.ClassBody;\n");
-			text.add("import cc1sj.tinyasm.ClassBuilder;\n");
-			text.add("import cc1sj.tinyasm.MethodCode;\n");
-			text.add("import org.objectweb.asm.Type;\n");
-	
-			text.add("import static org.objectweb.asm.Opcodes.*;\n");
-	
-			text.add("import cc1sj.tinyasm.Annotation;\n");
-			text.add("import cc1sj.tinyasm.Clazz;\n");
-			text.add(new TinyHolderReferTypes());
-	
-			text.add("@SuppressWarnings(\"unused\")\n");
-	
-			String className = simpleName + "TinyAsmDump";
-	
-			text.add("public class " + className + " {\n\n");
-			text.add("\tpublic static byte[] dump () throws Exception {\n");
-			text.add("\t\treturn new " + className + "().dump(\"" + name.replace('/', '.') + "\");\n");
-			text.add("\t}\n\n");
-			text.add("\tpublic byte[] dump(String className) throws Exception {\n");
-	//		text.add("			ClassBody classBody = ClassBuilder.make(className).access(ACC_PUBLIC | ACC_SUPER).body();");
-	
-	//    text.add("ClassWriter classBody = new ClassWriter(0);\n");
-	//    text.add("FieldVisitor fieldVisitor;\n");
-	//    text.add("MethodVisitor methodVisitor;\n");
-	//    text.add("AnnotationVisitor annotationVisitor0;\n\n");
-	
-			// ClassBody classBody =
-			// ClassBuilder.make("cc1sj.tinyasm.util.SimpleSample").body();
-	//		ClassSignature = ( visitFormalTypeParameter visitClassBound? visitInterfaceBound* )* (visitSuperclass visitInterface* )
-	//				MethodSignature = ( visitFormalTypeParameter visitClassBound? visitInterfaceBound* )* (visitParameterType* visitReturnType visitExceptionType* )
-	//				TypeSignature = visitBaseType | visitTypeVariable | visitArrayType | ( visitClassType visitTypeArgument* ( visitInnerClassType visitTypeArgument* )* visitEnd ) )
-	
-			stringBuilder.setLength(0);
-			/// stringBuilder.append("classBody.visit(");
-			if (signature == null) {
-				stringBuilder.append("\t\tClassBody classBody = ClassBuilder.make(className");
-	//			appendConstant(name.replace('/', '.'));
-				boolean hasSuperClass = false;
-				if (!Object.class.getName().equals(superName.replace('/', '.'))) {
-					hasSuperClass = true;
-					stringBuilder.append(", ");
-					stringBuilder.append(clazzOf(Type.getObjectType(superName), tiny_referedTypes));
-				}
-				if (interfaces != null && interfaces.length > 0) {
-					if (!hasSuperClass) {
-						stringBuilder.append(", ");
-						stringBuilder.append("null");
-					}
-	//				stringBuilder.append("new String[] {");
-					for (int i = 0; i < interfaces.length; ++i) {
-						stringBuilder.append(", ");
-	//					appendConstant(interfaces[i]);
-						stringBuilder.append(clazzOf(Type.getObjectType(interfaces[i]), tiny_referedTypes));
-					}
-	//				stringBuilder.append(" }");
-				} else {
-	//				stringBuilder.append(", ");
-	//				stringBuilder.append("null");
-				}
-				stringBuilder.append(")");
-			} else {
-				stringBuilder.append("\t\tClassBody classBody = ClassBuilder.make(className");
-	
-	//			appendConstant(name.replace('/', '.'));
-				stringBuilder.append(", ");
-				SignatureReader sr = new SignatureReader(signature);
-				ClassSignature signatureVistor = new ClassSignature(super.api, tiny_referedTypes);
-				sr.accept(signatureVistor);
-				stringBuilder.append(signatureVistor.superClass.toString());
-				for (StringBuilder string : signatureVistor.interfacesClass) {
-					stringBuilder.append(",");
-					stringBuilder.append(string);
-				}
-	//			stringBuilder.append(signatureVistor.interfacesClass.toString());
-				stringBuilder.append(")");
-				for (StringBuilder string : signatureVistor.typeParameterClass) {
-					stringBuilder.append(".formalTypeParameter(");
-					stringBuilder.append(string);
-					stringBuilder.append(")");
-				}
-			}
-	
-			if (access != ACC_PUBLIC) {
-				stringBuilder.append("\n\t\t\t.access(");
-				appendAccessFlags(access | ACCESS_CLASS);
-				stringBuilder.append(")");
-			}
-			stringBuilder.append(".body();\n\n");
-	//		stringBuilder.append("}\\n");
-			/// text.add("classBody.visitEnd();\n\n");
-			this.tiny_annotation = new Annotation();
+
 		}
+
+		// SignatureWriter sw = new SignatureWriter();
+		// SignatureVisitor sa = new AddGernicMVisiter(sw);
+		// SignatureReader sr = new SignatureReader(s1);
+		// sr.acceptType(sa);
+		// return sw.toString();
+		// text.add("import org.objectweb.asm.AnnotationVisitor;\n");
+		// text.add("import org.objectweb.asm.Attribute;\n");
+		// text.add("import org.objectweb.asm.ClassReader;\n");
+		// text.add("import org.objectweb.asm.ClassWriter;\n");
+		// text.add("import org.objectweb.asm.ConstantDynamic;\n");
+		// text.add("import org.objectweb.asm.FieldVisitor;\n");
+		// text.add("import org.objectweb.asm.Handle;\n");
+		text.add("import org.objectweb.asm.Label;\n");
+		// text.add("import org.objectweb.asm.MethodVisitor;\n");
+		// text.add("import org.objectweb.asm.Opcodes;\n");
+		// text.add("import org.objectweb.asm.Type;\n");
+		// text.add("import org.objectweb.asm.TypePath;\n");
+
+		text.add("import cc1sj.tinyasm.ClassBody;\n");
+		text.add("import cc1sj.tinyasm.ClassBuilder;\n");
+		text.add("import cc1sj.tinyasm.MethodCode;\n");
+		text.add("import org.objectweb.asm.Type;\n");
+
+		text.add("import static org.objectweb.asm.Opcodes.*;\n");
+
+		text.add("import cc1sj.tinyasm.Annotation;\n");
+		text.add("import cc1sj.tinyasm.Clazz;\n");
+		text.add(new TinyHolderReferTypes());
+
+		text.add("@SuppressWarnings(\"unused\")\n");
+
+		String className = simpleName + "TinyAsmDump";
+
+		text.add("public class " + className + " {\n\n");
+		text.add("\tpublic static byte[] dump () throws Exception {\n");
+		text.add("\t\treturn new " + className + "().dump(\"" + name.replace('/', '.') + "\");\n");
+		text.add("\t}\n\n");
+		text.add("\tpublic byte[] dump(String className) throws Exception {\n");
+		// text.add(" ClassBody classBody =
+		// ClassBuilder.make(className).access(ACC_PUBLIC | ACC_SUPER).body();");
+
+		// text.add("ClassWriter classBody = new ClassWriter(0);\n");
+		// text.add("FieldVisitor fieldVisitor;\n");
+		// text.add("MethodVisitor methodVisitor;\n");
+		// text.add("AnnotationVisitor annotationVisitor0;\n\n");
+
+		// ClassBody classBody =
+		// ClassBuilder.make("cc1sj.tinyasm.util.SimpleSample").body();
+		// ClassSignature = ( visitFormalTypeParameter visitClassBound?
+		// visitInterfaceBound* )* (visitSuperclass visitInterface* )
+		// MethodSignature = ( visitFormalTypeParameter visitClassBound?
+		// visitInterfaceBound* )* (visitParameterType* visitReturnType
+		// visitExceptionType* )
+		// TypeSignature = visitBaseType | visitTypeVariable | visitArrayType | (
+		// visitClassType visitTypeArgument* ( visitInnerClassType visitTypeArgument* )*
+		// visitEnd ) )
+
+		stringBuilder.setLength(0);
+		/// stringBuilder.append("classBody.visit(");
+		if (signature == null) {
+			stringBuilder.append("\t\tClassBody classBody = ClassBuilder.make(className");
+			// appendConstant(name.replace('/', '.'));
+			boolean hasSuperClass = false;
+			if (!Object.class.getName().equals(superName.replace('/', '.'))) {
+				hasSuperClass = true;
+				stringBuilder.append(", ");
+				stringBuilder.append(clazzOf(Type.getObjectType(superName), tiny_referedTypes));
+			}
+			if (interfaces != null && interfaces.length > 0) {
+				if (!hasSuperClass) {
+					stringBuilder.append(", ");
+					stringBuilder.append("null");
+				}
+				// stringBuilder.append("new String[] {");
+				for (int i = 0; i < interfaces.length; ++i) {
+					stringBuilder.append(", ");
+					// appendConstant(interfaces[i]);
+					stringBuilder.append(clazzOf(Type.getObjectType(interfaces[i]), tiny_referedTypes));
+				}
+				// stringBuilder.append(" }");
+			} else {
+				// stringBuilder.append(", ");
+				// stringBuilder.append("null");
+			}
+			stringBuilder.append(")");
+		} else {
+			stringBuilder.append("\t\tClassBody classBody = ClassBuilder.make(className");
+
+			// appendConstant(name.replace('/', '.'));
+			stringBuilder.append(", ");
+			SignatureReader sr = new SignatureReader(signature);
+			ClassSignature signatureVistor = new ClassSignature(super.api, tiny_referedTypes);
+			sr.accept(signatureVistor);
+			stringBuilder.append(signatureVistor.superClass.toString());
+			for (StringBuilder string : signatureVistor.interfacesClass) {
+				stringBuilder.append(",");
+				stringBuilder.append(string);
+			}
+			// stringBuilder.append(signatureVistor.interfacesClass.toString());
+			stringBuilder.append(")");
+			for (StringBuilder string : signatureVistor.typeParameterClass) {
+				stringBuilder.append(".formalTypeParameter(");
+				stringBuilder.append(string);
+				stringBuilder.append(")");
+			}
+		}
+
+		if (access != ACC_PUBLIC) {
+			stringBuilder.append("\n\t\t\t.access(");
+			appendAccessFlags(access | ACCESS_CLASS);
+			stringBuilder.append(")");
+		}
+		stringBuilder.append(".body();\n\n");
+		// stringBuilder.append("}\\n");
+		/// text.add("classBody.visitEnd();\n\n");
+		this.tiny_annotation = new Annotation();
+	}
 
 	protected TinyASMifier tiny_visitField(final int access, final String name, final String descriptor, final String signature) {
 		// classBody.field("i", int.class);
@@ -1669,7 +1748,7 @@ public class TinyASMifier extends Printer {
 				stringBuilder.append(", ");
 			}
 		} else {
-	
+
 			stringBuilder.append("\t\tclassBody.field(");
 			if (access != (ACC_PRIVATE)) {// access
 				appendAccessFlags(access);
@@ -1700,21 +1779,21 @@ public class TinyASMifier extends Printer {
 		// stringBuilder.append(clazzOf(Type.getType(descriptor)));
 		// stringBuilder.append(")");
 		// } else {
-	
+
 		{// annotation
 			this.tiny_annotation = new Annotation();
 			text.add(new TextParameter(this.tiny_annotation));
 		}
-	
+
 		//
 		// stringBuilder.append("{\n");
 		// stringBuilder.append("fieldVisitor = classBody.visitField(");
-	
+
 		// stringBuilder.append(", ");
-	
+
 		stringBuilder.setLength(0);
 		appendConstant(name);
-	
+
 		if (signature == null) {
 			stringBuilder.append(", Clazz.of(");
 			stringBuilder.append(clazzOf(Type.getType(descriptor), tiny_referedTypes));
@@ -1731,7 +1810,7 @@ public class TinyASMifier extends Printer {
 		// stringBuilder.append(");\n");
 		// }
 		stringBuilder.append(");\n");
-	
+
 		text.add(stringBuilder.toString());
 		TinyASMifier asmifier = createASMifier("fieldVisitor", 0);
 		text.add(asmifier.getText());
@@ -1741,207 +1820,209 @@ public class TinyASMifier extends Printer {
 	}
 
 	protected void tiny_visitMethod(final int access, final String name, final String descriptor, final String signature,
-				final String[] exceptions) {
-			tiny_methodLocals = new TinyLocalsStack();
-	
-			Type returnType = Type.getReturnType(descriptor);
-			tiny_methodParamTypes = Type.getArgumentTypes(descriptor);
-			String codeMethodName = "_" + name.replaceAll("[<>]", "_");
-	
-			if ((access & ACC_BRIDGE) > 0) {
-				codeMethodName = "_bridge" + codeMethodName;
-			}
-	
-			codeMethodName = !tiny_methodNames.containsKey(codeMethodName) ? codeMethodName
-					: nameWithParameter(codeMethodName, tiny_methodParamTypes);
-			tiny_methodNames.put(codeMethodName, codeMethodName);
-			// Call method
-			stringBuilder.setLength(0);
-			stringBuilder.append("\t\t");
-			stringBuilder.append(codeMethodName);
-			stringBuilder.append("(classBody);\n");
-			text.add(stringBuilder.toString());
-	
-			stringBuilder.setLength(0);
-			logger.debug("visitMethod(final int access, final String {}, final String {}, final String {}, final String[] exceptions)", name,
-					descriptor, signature);
-			if ((access & ACC_STATIC) > 0) {
-				tiny_methodIsStatic = true;
-				tiny_methodVisitParameter = 0;
-			} else {
-				tiny_methodLocals.pushDefined("this", Type.getType(Object.class));
-				tiny_methodIsStatic = false;
-				tiny_methodVisitParameter = 1;
-			}
-	
-			stringBuilder.setLength(0);
-	
-			stringBuilder.append("\tprotected void ");
-			stringBuilder.append(codeMethodName);
-			stringBuilder.append("(ClassBody classBody) {\n");
-	//		stringBuilder.append("{\n");
-			if (!tiny_methodIsStatic) {
-				stringBuilder.append("\t\tMethodCode code = classBody.method(");
-				if (access != (ACC_PUBLIC)) {
-					appendAccessFlags(access);
-					stringBuilder.append(", ");
-				}
-			} else {
-				stringBuilder.append("\t\tMethodCode code = classBody.staticMethod(");
-				if (access != (ACC_PUBLIC | ACC_STATIC)) {
-					appendAccessFlags(access);
-					stringBuilder.append(", ");
-				}
-			}
-			tiny_methodParamClazzes = null;
-			if (signature == null) {
-				if (returnType != Type.VOID_TYPE) {
-					stringBuilder.append(clazzOf(returnType, tiny_referedTypes));
-					stringBuilder.append(", ");
-				}
-				appendConstant(name);
-			} else {
-				SignatureReader sr = new SignatureReader(signature);
-				ClassSignature signatureVistor = new ClassSignature(super.api, tiny_referedTypes);
-				sr.accept(signatureVistor);
-				stringBuilder.append(signatureVistor.returnClass.toString());
-				stringBuilder.append(", ");
-				appendConstant(name);
-				tiny_methodParamClazzes = signatureVistor.paramsClass;
-	//			stringBuilder.append(", ");
-	//			stringBuilder.append(signatureVistor.paramsClass.toString());
-			}
-	
-			stringBuilder.append(")");
-			tiny_textMethods.add(stringBuilder.toString());
-			stringBuilder.setLength(0);
-	
-			if (exceptions != null && exceptions.length > 0) {
-	//			stringBuilder.append("new String[] {");
-				for (int i = 0; i < exceptions.length; ++i) {
-					stringBuilder.append("\n\t\t\t.tHrow(");
-					stringBuilder.append(clazzOf(Type.getObjectType(exceptions[i]), tiny_referedTypes));
-					stringBuilder.append(" )");
-				}
-			}
-			tiny_textMethods.add(stringBuilder.toString());
-			stringBuilder.setLength(0);
-	
-			if (tiny_methodParamTypes.length > 0) {
-				for (int i = 0; i < tiny_methodParamTypes.length; i++) {
-					tiny_methodLocals.pushDefined("", tiny_methodParamTypes[i]);
-				}
-			}
+			final String[] exceptions) {
+		tiny_methodLocals = new TinyLocalsStack();
+
+		Type returnType = Type.getReturnType(descriptor);
+		tiny_methodParamTypes = Type.getArgumentTypes(descriptor);
+		String codeMethodName = "_" + name.replaceAll("[<>]", "_");
+
+		if ((access & ACC_BRIDGE) > 0) {
+			codeMethodName = "_bridge" + codeMethodName;
 		}
 
-	protected void tiny_visitFieldInsn(final int opcode, final String owner, final String name, final String descriptor) {
-			stringBuilder.setLength(0);
-			switch (opcode) {
-	
-			case GETSTATIC: // 178; // visitFieldInsn
-	
-				if (this.tiny_className.equals(owner)) {
-	
-					stringBuilder.setLength(0);
-					stringBuilder.append(this.visitname).append(".GET_THIS_STATIC(");
-					appendConstant(name);
-					stringBuilder.append(");\n");
-					text.add(stringBuilder.toString());
-				} else {
-	//			code.GETSTATIC(System.class,"out",PrintStream.class);
-					stringBuilder.setLength(0);
-					stringBuilder.append(this.visitname).append(".GETSTATIC(");
-					stringBuilder.append(clazzOf(Type.getObjectType(owner), tiny_referedTypes));
-					stringBuilder.append(", ");
-					appendConstant(name);
-					stringBuilder.append(", ");
-					stringBuilder.append(clazzOf(Type.getType(descriptor), tiny_referedTypes));
-					stringBuilder.append(");\n");
-					text.add(stringBuilder.toString());
-				}
-				break;
-			case PUTSTATIC: // 179; // -
-	
-	//			code.GETSTATIC(System.class,"out",PrintStream.class);
-				if (this.tiny_className.equals(owner)) {
-					stringBuilder.setLength(0);
-					stringBuilder.append(this.visitname).append(".PUT_THIS_STATIC(");
-					appendConstant(name);
-					stringBuilder.append(");\n");
-					text.add(stringBuilder.toString());
-				} else {
-	
-					stringBuilder.setLength(0);
-					stringBuilder.append(this.visitname).append(".PUTSTATIC(");
-					stringBuilder.append(clazzOf(Type.getObjectType(owner), tiny_referedTypes));
-					stringBuilder.append(", ");
-					appendConstant(name);
-					stringBuilder.append(", ");
-					stringBuilder.append(clazzOf(Type.getType(descriptor), tiny_referedTypes));
-					stringBuilder.append(");\n");
-					text.add(stringBuilder.toString());
-				}
-				break;
-	
-			case GETFIELD: // 180; // -
-	//			stringBuilder.setLength(0);
-	//			stringBuilder.append("//");
-	//			stringBuilder.append(this.visitname).append(".visitFieldInsn(").append(OPCODES[opcode]).append(", ");
-	////			appendConstant(owner);
-	////			stringBuilder.append(", ");
-	//			appendConstant(name);
-	//			stringBuilder.append(", ");
-	//			appendConstant(descriptor);
-	//			stringBuilder.append(");\n");
-	//			text.add(stringBuilder.toString());
-	
-				stringBuilder.setLength(0);
-				stringBuilder.append(this.visitname).append(".GETFIELD(");
-				appendConstant(name);
+		codeMethodName = !tiny_methodNames.containsKey(codeMethodName) ? codeMethodName
+				: nameWithParameter(codeMethodName, tiny_methodParamTypes);
+		tiny_methodNames.put(codeMethodName, codeMethodName);
+		// Call method
+		stringBuilder.setLength(0);
+		stringBuilder.append("\t\t");
+		stringBuilder.append(codeMethodName);
+		stringBuilder.append("(classBody);\n");
+		text.add(stringBuilder.toString());
+
+		stringBuilder.setLength(0);
+		logger.debug("visitMethod(final int access, final String {}, final String {}, final String {}, final String[] exceptions)", name,
+				descriptor, signature);
+		if ((access & ACC_STATIC) > 0) {
+			tiny_methodIsStatic = true;
+			tiny_methodVisitParameter = 0;
+		} else {
+			tiny_methodLocals.pushDefined("this", Type.getType(Object.class));
+			tiny_methodIsStatic = false;
+			tiny_methodVisitParameter = 1;
+		}
+
+		stringBuilder.setLength(0);
+
+		stringBuilder.append("\tprotected void ");
+		stringBuilder.append(codeMethodName);
+		stringBuilder.append("(ClassBody classBody) {\n");
+		// stringBuilder.append("{\n");
+		if (!tiny_methodIsStatic) {
+			stringBuilder.append("\t\tMethodCode code = classBody.method(");
+			if (access != (ACC_PUBLIC)) {
+				appendAccessFlags(access);
 				stringBuilder.append(", ");
-				stringBuilder.append(clazzOf(Type.getType(descriptor), tiny_referedTypes));
-				stringBuilder.append(");\n");
-				text.add(stringBuilder.toString());
-				break;
-			case PUTFIELD: // 181; // -
-	//			stringBuilder.setLength(0);
-	//			stringBuilder.append("//");
-	//			stringBuilder.append(this.visitname).append(".visitFieldInsn(").append(OPCODES[opcode]).append(", ");
-	////			appendConstant(owner);
-	////			stringBuilder.append(", ");
-	//			appendConstant(name);
-	//			stringBuilder.append(", ");
-	//			appendConstant(descriptor);
-	//			stringBuilder.append(");\n");
-	//			text.add(stringBuilder.toString());
-	
-				stringBuilder.setLength(0);
-				stringBuilder.append(this.visitname).append(".PUTFIELD(");
-				appendConstant(name);
+			}
+		} else {
+			stringBuilder.append("\t\tMethodCode code = classBody.staticMethod(");
+			if (access != (ACC_PUBLIC | ACC_STATIC)) {
+				appendAccessFlags(access);
 				stringBuilder.append(", ");
-				stringBuilder.append(clazzOf(Type.getType(descriptor), tiny_referedTypes));
-				stringBuilder.append(");\n");
-				text.add(stringBuilder.toString());
-				break;
-	
-			default:
-	
-				stringBuilder.setLength(0);
-				stringBuilder.append(this.visitname).append(".visitFieldInsn(").append(OPCODES[opcode]).append(", ");
-	//			appendConstant(owner);
-	//			stringBuilder.append(", ");
-				appendConstant(name);
-				stringBuilder.append(", ");
-				appendConstant(descriptor);
-				stringBuilder.append(");\n");
-				text.add(stringBuilder.toString());
-				break;
 			}
 		}
+		tiny_methodParamClazzes = null;
+		if (signature == null) {
+			if (returnType != Type.VOID_TYPE) {
+				stringBuilder.append(clazzOf(returnType, tiny_referedTypes));
+				stringBuilder.append(", ");
+			}
+			appendConstant(name);
+		} else {
+			SignatureReader sr = new SignatureReader(signature);
+			ClassSignature signatureVistor = new ClassSignature(super.api, tiny_referedTypes);
+			sr.accept(signatureVistor);
+			stringBuilder.append(signatureVistor.returnClass.toString());
+			stringBuilder.append(", ");
+			appendConstant(name);
+			tiny_methodParamClazzes = signatureVistor.paramsClass;
+			// stringBuilder.append(", ");
+			// stringBuilder.append(signatureVistor.paramsClass.toString());
+		}
+
+		stringBuilder.append(")");
+		tiny_textMethods.add(stringBuilder.toString());
+		stringBuilder.setLength(0);
+
+		if (exceptions != null && exceptions.length > 0) {
+			// stringBuilder.append("new String[] {");
+			for (int i = 0; i < exceptions.length; ++i) {
+				stringBuilder.append("\n\t\t\t.tHrow(");
+				stringBuilder.append(clazzOf(Type.getObjectType(exceptions[i]), tiny_referedTypes));
+				stringBuilder.append(" )");
+			}
+		}
+		tiny_textMethods.add(stringBuilder.toString());
+		stringBuilder.setLength(0);
+
+		if (tiny_methodParamTypes.length > 0) {
+			for (int i = 0; i < tiny_methodParamTypes.length; i++) {
+				tiny_methodLocals.pushDefined("", tiny_methodParamTypes[i]);
+			}
+		}
+	}
+
+	protected void tiny_visitFieldInsn(final int opcode, final String owner, final String name, final String descriptor) {
+		stringBuilder.setLength(0);
+		switch (opcode) {
+
+		case GETSTATIC: // 178; // visitFieldInsn
+
+			if (this.tiny_className.equals(owner)) {
+
+				stringBuilder.setLength(0);
+				stringBuilder.append(this.visitname).append(".GET_THIS_STATIC(");
+				appendConstant(name);
+				stringBuilder.append(");\n");
+				text.add(stringBuilder.toString());
+			} else {
+				// code.GETSTATIC(System.class,"out",PrintStream.class);
+				stringBuilder.setLength(0);
+				stringBuilder.append(this.visitname).append(".GETSTATIC(");
+				stringBuilder.append(clazzOf(Type.getObjectType(owner), tiny_referedTypes));
+				stringBuilder.append(", ");
+				appendConstant(name);
+				stringBuilder.append(", ");
+				stringBuilder.append(clazzOf(Type.getType(descriptor), tiny_referedTypes));
+				stringBuilder.append(");\n");
+				text.add(stringBuilder.toString());
+			}
+			break;
+		case PUTSTATIC: // 179; // -
+
+			// code.GETSTATIC(System.class,"out",PrintStream.class);
+			if (this.tiny_className.equals(owner)) {
+				stringBuilder.setLength(0);
+				stringBuilder.append(this.visitname).append(".PUT_THIS_STATIC(");
+				appendConstant(name);
+				stringBuilder.append(");\n");
+				text.add(stringBuilder.toString());
+			} else {
+
+				stringBuilder.setLength(0);
+				stringBuilder.append(this.visitname).append(".PUTSTATIC(");
+				stringBuilder.append(clazzOf(Type.getObjectType(owner), tiny_referedTypes));
+				stringBuilder.append(", ");
+				appendConstant(name);
+				stringBuilder.append(", ");
+				stringBuilder.append(clazzOf(Type.getType(descriptor), tiny_referedTypes));
+				stringBuilder.append(");\n");
+				text.add(stringBuilder.toString());
+			}
+			break;
+
+		case GETFIELD: // 180; // -
+			// stringBuilder.setLength(0);
+			// stringBuilder.append("//");
+			// stringBuilder.append(this.visitname).append(".visitFieldInsn(").append(OPCODES[opcode]).append(",
+			// ");
+			//// appendConstant(owner);
+			//// stringBuilder.append(", ");
+			// appendConstant(name);
+			// stringBuilder.append(", ");
+			// appendConstant(descriptor);
+			// stringBuilder.append(");\n");
+			// text.add(stringBuilder.toString());
+
+			stringBuilder.setLength(0);
+			stringBuilder.append(this.visitname).append(".GETFIELD(");
+			appendConstant(name);
+			stringBuilder.append(", ");
+			stringBuilder.append(clazzOf(Type.getType(descriptor), tiny_referedTypes));
+			stringBuilder.append(");\n");
+			text.add(stringBuilder.toString());
+			break;
+		case PUTFIELD: // 181; // -
+			// stringBuilder.setLength(0);
+			// stringBuilder.append("//");
+			// stringBuilder.append(this.visitname).append(".visitFieldInsn(").append(OPCODES[opcode]).append(",
+			// ");
+			//// appendConstant(owner);
+			//// stringBuilder.append(", ");
+			// appendConstant(name);
+			// stringBuilder.append(", ");
+			// appendConstant(descriptor);
+			// stringBuilder.append(");\n");
+			// text.add(stringBuilder.toString());
+
+			stringBuilder.setLength(0);
+			stringBuilder.append(this.visitname).append(".PUTFIELD(");
+			appendConstant(name);
+			stringBuilder.append(", ");
+			stringBuilder.append(clazzOf(Type.getType(descriptor), tiny_referedTypes));
+			stringBuilder.append(");\n");
+			text.add(stringBuilder.toString());
+			break;
+
+		default:
+
+			stringBuilder.setLength(0);
+			stringBuilder.append(this.visitname).append(".visitFieldInsn(").append(OPCODES[opcode]).append(", ");
+			// appendConstant(owner);
+			// stringBuilder.append(", ");
+			appendConstant(name);
+			stringBuilder.append(", ");
+			appendConstant(descriptor);
+			stringBuilder.append(");\n");
+			text.add(stringBuilder.toString());
+			break;
+		}
+	}
 
 	protected void tiny_visitIntInsn(final int opcode, final int operand) {
 		stringBuilder.setLength(0);
-	
+
 		switch (opcode) {
 		case BIPUSH: // 16; // visitIntInsn
 			stringBuilder.append(visitname).append(".LOADConst(").append(operand).append(");\n");
@@ -1949,7 +2030,7 @@ public class TinyASMifier extends Printer {
 		case SIPUSH: // 17; // -
 			stringBuilder.append(visitname).append(".LOADConst(").append(operand).append(");\n");
 			break;
-	
+
 		case NEWARRAY: // 188; // visitIntInsn
 			switch (operand) {
 			case T_BOOLEAN:// 4;
@@ -1976,7 +2057,7 @@ public class TinyASMifier extends Printer {
 			case T_LONG:// 11;
 				stringBuilder.append(visitname).append(".NEWARRAY(").append("long.class").append(");\n");
 				break;
-	
+
 			default:
 				stringBuilder.append(visitname).append(".NEWARRAY(").append(TYPES[operand]).append(");\n");
 				break;
@@ -1990,89 +2071,90 @@ public class TinyASMifier extends Printer {
 	}
 
 	protected void tiny_visitVarInsn(final int opcode, final int var) {
-			stringBuilder.setLength(0);
-	//		stringBuilder.append(name).append(".visitVarInsn(").append(OPCODES[opcode]).append(", ").append(var)
-	//				.append(");\n");
-			Var localVar = null;
-			if (ILOAD <= opcode && opcode <= ALOAD) {
-				switch (opcode) {
-				case ILOAD: // 21; // visitVarInsn
-					localVar = tiny_methodLocals.accessLoad(var, 1);
-					break;
-				case LLOAD: // 22; // -
-					localVar = tiny_methodLocals.accessLoad(var, 2);
-					break;
-				case FLOAD: // 23; // -
-					localVar = tiny_methodLocals.accessLoad(var, 2);
-					break;
-				case DLOAD: // 24; // -
-					localVar = tiny_methodLocals.accessLoad(var, 2);
-					break;
-				case ALOAD: // 25; // -
-					localVar = tiny_methodLocals.accessLoad(var, 1);
-					break;
-				}
-	//			if (localVar.count == 1) {
-	//				text.add(stringBuilder.toString());
-	//				text.add(new DefineVar(localVar));
-	//				stringBuilder.setLength(0);
-	//			}
-	
-				stringBuilder.append(visitname).append(".LOAD(\"");
-				text.add(stringBuilder.toString());
-				text.add(localVar);
-				stringBuilder.setLength(0);
-	
-				stringBuilder.append("\");\n");
-				text.add(stringBuilder.toString());
-			} else if (ISTORE <= opcode && opcode <= ASTORE) {
-				switch (opcode) {
-				case ISTORE: // 54; // visitVarInsn
-					localVar = tiny_methodLocals.accessStore(var, 1);
-					break;
-				case LSTORE: // 55; // -
-					localVar = tiny_methodLocals.accessStore(var, 2);
-					break;
-				case FSTORE: // 56; // -
-					localVar = tiny_methodLocals.accessStore(var, 2);
-					break;
-				case DSTORE: // 57; // -
-					localVar = tiny_methodLocals.accessStore(var, 2);
-					break;
-				case ASTORE: // 58; // -
-					localVar = tiny_methodLocals.accessStore(var, 1);
-					break;
-				}
-	//			if (localVar.count == 1) {
-	//				text.add(stringBuilder.toString());
-	//				text.add(new DefineVar(localVar));
-	//				stringBuilder.setLength(0);
-	//			}
-				stringBuilder.append(visitname).append(".STORE(\"");
-	
-				text.add(stringBuilder.toString());
-				text.add(localVar);
-				stringBuilder.setLength(0);
-	
-				stringBuilder.append("\"");
-				if (localVar.count == 1) {
-					text.add(stringBuilder.toString());
-					text.add(new VarType(localVar));
-					stringBuilder.setLength(0);
-					stringBuilder.append("");
-				}
-				stringBuilder.append(");\n");
-				text.add(stringBuilder.toString());
-			} else if (opcode == RET) {// 169; // visitVarInsn
-	
-				stringBuilder.append(visitname).append(".visitVarInsn(").append(OPCODES[opcode]).append(", ").append(var).append(");\n");
-	
+		stringBuilder.setLength(0);
+		// stringBuilder.append(name).append(".visitVarInsn(").append(OPCODES[opcode]).append(",
+		// ").append(var)
+		// .append(");\n");
+		Var localVar = null;
+		if (ILOAD <= opcode && opcode <= ALOAD) {
+			switch (opcode) {
+			case ILOAD: // 21; // visitVarInsn
+				localVar = tiny_methodLocals.accessLoad(var, 1);
+				break;
+			case LLOAD: // 22; // -
+				localVar = tiny_methodLocals.accessLoad(var, 2);
+				break;
+			case FLOAD: // 23; // -
+				localVar = tiny_methodLocals.accessLoad(var, 2);
+				break;
+			case DLOAD: // 24; // -
+				localVar = tiny_methodLocals.accessLoad(var, 2);
+				break;
+			case ALOAD: // 25; // -
+				localVar = tiny_methodLocals.accessLoad(var, 1);
+				break;
 			}
+			// if (localVar.count == 1) {
+			// text.add(stringBuilder.toString());
+			// text.add(new DefineVar(localVar));
+			// stringBuilder.setLength(0);
+			// }
+
+			stringBuilder.append(visitname).append(".LOAD(\"");
+			text.add(stringBuilder.toString());
+			text.add(localVar);
+			stringBuilder.setLength(0);
+
+			stringBuilder.append("\");\n");
+			text.add(stringBuilder.toString());
+		} else if (ISTORE <= opcode && opcode <= ASTORE) {
+			switch (opcode) {
+			case ISTORE: // 54; // visitVarInsn
+				localVar = tiny_methodLocals.accessStore(var, 1);
+				break;
+			case LSTORE: // 55; // -
+				localVar = tiny_methodLocals.accessStore(var, 2);
+				break;
+			case FSTORE: // 56; // -
+				localVar = tiny_methodLocals.accessStore(var, 2);
+				break;
+			case DSTORE: // 57; // -
+				localVar = tiny_methodLocals.accessStore(var, 2);
+				break;
+			case ASTORE: // 58; // -
+				localVar = tiny_methodLocals.accessStore(var, 1);
+				break;
+			}
+			// if (localVar.count == 1) {
+			// text.add(stringBuilder.toString());
+			// text.add(new DefineVar(localVar));
+			// stringBuilder.setLength(0);
+			// }
+			stringBuilder.append(visitname).append(".STORE(\"");
+
+			text.add(stringBuilder.toString());
+			text.add(localVar);
+			stringBuilder.setLength(0);
+
+			stringBuilder.append("\"");
+			if (localVar.count == 1) {
+				text.add(stringBuilder.toString());
+				text.add(new VarType(localVar));
+				stringBuilder.setLength(0);
+				stringBuilder.append("");
+			}
+			stringBuilder.append(");\n");
+			text.add(stringBuilder.toString());
+		} else if (opcode == RET) {// 169; // visitVarInsn
+
+			stringBuilder.append(visitname).append(".visitVarInsn(").append(OPCODES[opcode]).append(", ").append(var).append(");\n");
+
 		}
+	}
 
 	protected void tiny_visitTypeInsn(final int opcode, final String type) {
 		switch (opcode) {
-	
+
 		case NEW: // 187; // visitTypeInsn
 			stringBuilder.setLength(0);
 			stringBuilder.append(visitname).append(".NEW(");
@@ -2101,7 +2183,7 @@ public class TinyASMifier extends Printer {
 			stringBuilder.append(");\n");
 			text.add(stringBuilder.toString());
 			break;
-	
+
 		default:
 			stringBuilder.setLength(0);
 			stringBuilder.append(visitname).append(".visitTypeInsn(").append(OPCODES[opcode]).append(", ");

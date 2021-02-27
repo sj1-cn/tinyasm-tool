@@ -8,7 +8,7 @@ import org.objectweb.asm.Type;
 
 //import nebula.tinyasm.Annotation;
 
-public class TinyLocalsStack implements Iterable<TinyLocalsStack.Var> {
+class TinyLocalsStack implements Iterable<TinyLocalsStack.Var> {
 
 	public static class Var {
 		int access;

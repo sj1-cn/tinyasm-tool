@@ -55,32 +55,40 @@ public class RefineCode {
 		input = input.replaceAll("methodVisitor.visitLocalVariable[^\\n]*;\\n", "");
 		return input;
 	}
-
+	/**
+	 * 暂时不需要的代码
+	 * @param input
+	 * @return
+	 */
+	// 去新的ASM框架无法处理返回值导致连续无用的ASTORE ALOAD
+//	input = input.replaceAll("methodVisitor[.]visitVarInsn\\(ASTORE, [0-9]*\\);\\n" + "Label label[0-9]+ = new Label\\(\\);\\n"
+//			+ "methodVisitor[.]visitLabel\\(label[0-9]+\\);\\n" + "methodVisitor[.]visitLineNumber\\([0-9]+, label[0-9]+\\);\\n"
+//			+ "methodVisitor.visitVarInsn\\(ALOAD, [0-9]+\\);\\n", "");
 	public static String excludeLineNumber(String input) {
-		// 去新的ASM框架无法处理返回值导致连续无用的ASTORE ALOAD
-		input = input.replaceAll("methodVisitor[.]visitVarInsn\\(ASTORE, [0-9]*\\);\\n" + "Label label[0-9]+ = new Label\\(\\);\\n"
-				+ "methodVisitor[.]visitLabel\\(label[0-9]+\\);\\n" + "methodVisitor[.]visitLineNumber\\([0-9]+, label[0-9]+\\);\\n"
-				+ "methodVisitor.visitVarInsn\\(ALOAD, [0-9]+\\);\\n", "");
-
-		// 忽视行号数字
-		input = input.replaceAll("methodVisitor.visitLineNumber\\([0-9]+, label[0-9]+\\);", "methodVisitor.visitLineNumber(x,labelx);");
+		
 		// 移除visitParameter，因为老版本的java不支持这个东东
 		input = input.replaceAll("methodVisitor.visitParameter[^\\n]*;\\n", "");
 		// 去除所有Frame相关东西
 		input = input.replaceAll("methodVisitor.visitFrame[^\\n]*;\\n", "");
-
+		input = input.replaceAll(visit("methodVisitor.visitMaxs", TYPE.INT, TYPE.INT), "methodVisitor.visitMaxs(1, 1);");
+		input = input.replaceAll(
+				visit("methodVisitor.visitLocalVariable", TYPE.STRING, TYPE.STRING, TYPE.STRING, TYPE.NAME, TYPE.NAME, TYPE.NAME),
+				"methodVisitor.visitLocalVariable(local,$2,$3,l0,l1,$6);\n");
+		
+		
 		// 内部生成的Class，不包含最后的This
 		input = input.replaceAll("Label label[0-9]+ = new Label\\(\\);\\n" + "methodVisitor.visitLabel\\(label[0-9]+\\);\\n"
 				+ "methodVisitor.visitLocalVariable[^\\n]*;\\n", "");
+		
 
-//		Label label1 = new Label();
-//		methodVisitor.visitLabel(label1);
-//		methodVisitor.visitLocalVariable("this","Lnebula/data/jdbc/UserExtendJdbcRowMapper;",null,l0,l1,0);
-//		
-//		
-//		Label label1 = new Label();
-//		methodVisitor.visitLabel(label1);
-//		methodVisitor.visitLocalVariable(local,"Lnebula/data/jdbc/UserAutoIncrementJdbcRepository;",null,l0,l1,0);
+//		input = input.replaceAll("Label label[0-9]+ = new Label\\(\\);\\n", "");
+		// 忽视行号数字
+//		input = input.replaceAll("methodVisitor.visitLineNumber\\(([0-9]+), label([0-9]+)\\);", "methodVisitor.visitLineNumber(x,label$2);");
+		input = input.replaceAll("methodVisitor.visitLineNumber\\([0-9]+, label[0-9]+\\);\\n", "");
+
+		
+
+		
 
 //////		input = input.replaceAll("methodVisitor.visitLocalVariable[^\\n]*;\\n", "");
 //////		input = input.replaceAll("Label label[0-9]+ = new Label\\(\\);", "Label labelx = new Label();");
@@ -88,15 +96,11 @@ public class RefineCode {
 //////		input = input.replaceAll("Label l1 = new Label\\(\\)[^\\n]*;\\n", "");
 //////		input = input.replaceAll("methodVisitor.visitLabel\\(l1\\)[^\\n]*;\\n", "");
 ////
-		input = input.replaceAll(visit("methodVisitor.visitMaxs", TYPE.INT, TYPE.INT), "methodVisitor.visitMaxs(1, 1);");
 ////
 ////		input = input.replaceAll("methodVisitor.visitLocalVariable\\(\\\"this\\$0\\\"[^\\n]*;\\n", "");
 ////
 //
 
-		input = input.replaceAll(
-				visit("methodVisitor.visitLocalVariable", TYPE.STRING, TYPE.STRING, TYPE.STRING, TYPE.NAME, TYPE.NAME, TYPE.NAME),
-				"methodVisitor.visitLocalVariable(local,$2,$3,l0,l1,$6);\n");
 
 		return input;
 	}
@@ -365,4 +369,5 @@ public class RefineCode {
 //			String match = "methodVisitor.visit(\\w*)\\((\\w*), ([^,]*), ([^,]*), ([^,]*), ([^,]*)\\);";
 
 	}
+	
 }

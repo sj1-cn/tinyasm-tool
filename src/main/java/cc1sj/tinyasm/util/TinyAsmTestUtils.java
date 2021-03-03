@@ -4,9 +4,12 @@ import static cc1sj.tinyasm.util.RefineCode.excludeLineNumber;
 import static cc1sj.tinyasm.util.RefineCode.skipToString;
 import static org.junit.Assert.assertEquals;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URL;
@@ -168,6 +171,36 @@ public class TinyAsmTestUtils {
 			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
+	}
+
+	public static String readJavaSourceFile(File file) {
+		try {
+			FileInputStream fis = new FileInputStream(file);
+			byte[] data = new byte[(int) file.length()];
+			fis.read(data);
+			fis.close();
+
+			return new String(data, "UTF-8");
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+	}
+
+	public static String readJavaSourceFile(String className) {
+		return readJavaSourceFile(new File("src/test/java", className.replace('.', '/') + ".java"));
+	}
+
+	public static String readJavaSourceFile(Class<?> clazz) {
+		return readJavaSourceFile(new File("src/test/java", clazz.getName().replace('.', '/') + ".java"));
+	}
+
+	public static void writeJavaSourceFile(String className, String code) {
+		writeToFile(code, new File("src/test/java", className.replace('.', '/') + ".java"));
+	}
+
+	public static void writeJavaSourceFile(Class<?> clazz, String code) {
+		writeToFile(code, new File("src/test/java", clazz.getName().replace('.', '/') + ".java"));
 	}
 
 	public static byte[] dumpTinyAsm(Class<?> expectedClazz) {

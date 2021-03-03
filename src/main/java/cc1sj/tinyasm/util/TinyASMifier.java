@@ -233,7 +233,6 @@ public class TinyASMifier extends Printer {
 		text.add(stringBuilder.toString());
 	}
 
-
 	@Override
 	public void visitOuterClass(final String owner, final String name, final String descriptor) {
 		stringBuilder.setLength(0);
@@ -280,7 +279,6 @@ public class TinyASMifier extends Printer {
 		stringBuilder.append(END_PARAMETERS);
 		text.add(stringBuilder.toString());
 	}
-
 
 	@Override
 	public void visitInnerClass(final String name, final String outerName, final String innerName, final int access) {
@@ -935,7 +933,7 @@ public class TinyASMifier extends Printer {
 	public void visitLineNumber(final int line, final Label start) {
 		stringBuilder.setLength(0);
 		stringBuilder.append("\n");
-		stringBuilder.append(visitname).append(".LINE(").append(line);
+		stringBuilder.append(visitname).append(".LINE(");// .append(line);
 		stringBuilder.append(");\n");
 		text.add(stringBuilder.toString());
 	}
@@ -1975,13 +1973,21 @@ public class TinyASMifier extends Printer {
 			// stringBuilder.append(");\n");
 			// text.add(stringBuilder.toString());
 
-			stringBuilder.setLength(0);
-			stringBuilder.append(this.visitname).append(".GETFIELD(");
-			appendConstant(name);
-			stringBuilder.append(", ");
-			stringBuilder.append(clazzOf(Type.getType(descriptor), tiny_referedTypes));
-			stringBuilder.append(");\n");
-			text.add(stringBuilder.toString());
+			if (this.tiny_className.equals(owner)) {
+				stringBuilder.setLength(0);
+				stringBuilder.append(this.visitname).append(".GETFIELD_OF_THIS(");
+				appendConstant(name);
+				stringBuilder.append(");\n");
+				text.add(stringBuilder.toString());
+			} else {
+				stringBuilder.setLength(0);
+				stringBuilder.append(this.visitname).append(".GETFIELD(");
+				appendConstant(name);
+				stringBuilder.append(", ");
+				stringBuilder.append(clazzOf(Type.getType(descriptor), tiny_referedTypes));
+				stringBuilder.append(");\n");
+				text.add(stringBuilder.toString());
+			}
 			break;
 		case PUTFIELD: // 181; // -
 			// stringBuilder.setLength(0);
@@ -1996,13 +2002,21 @@ public class TinyASMifier extends Printer {
 			// stringBuilder.append(");\n");
 			// text.add(stringBuilder.toString());
 
-			stringBuilder.setLength(0);
-			stringBuilder.append(this.visitname).append(".PUTFIELD(");
-			appendConstant(name);
-			stringBuilder.append(", ");
-			stringBuilder.append(clazzOf(Type.getType(descriptor), tiny_referedTypes));
-			stringBuilder.append(");\n");
-			text.add(stringBuilder.toString());
+			if (this.tiny_className.equals(owner)) {
+				stringBuilder.setLength(0);
+				stringBuilder.append(this.visitname).append(".PUTFIELD_OF_THIS(");
+				appendConstant(name);
+				stringBuilder.append(");\n");
+				text.add(stringBuilder.toString());
+			} else {
+				stringBuilder.setLength(0);
+				stringBuilder.append(this.visitname).append(".PUTFIELD(");
+				appendConstant(name);
+				stringBuilder.append(", ");
+				stringBuilder.append(clazzOf(Type.getType(descriptor), tiny_referedTypes));
+				stringBuilder.append(");\n");
+				text.add(stringBuilder.toString());
+			}
 			break;
 
 		default:

@@ -77,8 +77,8 @@ public class RefineCode {
 		
 		
 		// 内部生成的Class，不包含最后的This
-		input = input.replaceAll("Label label[0-9]+ = new Label\\(\\);\\n" + "methodVisitor.visitLabel\\(label[0-9]+\\);\\n"
-				+ "methodVisitor.visitLocalVariable[^\\n]*;\\n", "");
+//		input = input.replaceAll("Label label[0-9]+ = new Label\\(\\);\\n" + "methodVisitor.visitLabel\\(label[0-9]+\\);\\n"
+//				+ "methodVisitor.visitLocalVariable[^\\n]*;\\n", "");
 		
 
 //		input = input.replaceAll("Label label[0-9]+ = new Label\\(\\);\\n", "");

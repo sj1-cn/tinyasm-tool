@@ -28,6 +28,7 @@
 package cc1sj.tinyasm.util;
 
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -282,17 +283,20 @@ public class TinyASMifier extends Printer {
 
 	@Override
 	public void visitInnerClass(final String name, final String outerName, final String innerName, final int access) {
+//		classBody.referInnerClass(ACC_PUBLIC | ACC_FINAL | ACC_STATIC, MethodHandles.class.getName(), "Lookup");
+//		classWriter.visitInnerClass("java/lang/invoke/MethodHandles$Lookup", "java/lang/invoke/MethodHandles", "Lookup", ACC_PUBLIC | ACC_FINAL | ACC_STATIC);
+
 		stringBuilder.setLength(0);
-		stringBuilder.append("classBody.visitInnerClass(");
-		appendConstant(name);
+		stringBuilder.append("classBody.referInnerClass(");
+		appendAccessFlags(access | ACCESS_INNER);
 		stringBuilder.append(", ");
-		appendConstant(outerName);
+//		appendConstant(name);
+//		stringBuilder.append(", ");
+		appendConstant(outerName.replace('/', '.'));
 		stringBuilder.append(", ");
 		appendConstant(innerName);
-		stringBuilder.append(", ");
-		appendAccessFlags(access | ACCESS_INNER);
 		stringBuilder.append(END_PARAMETERS);
-//		text.add(stringBuilder.toString());
+		text.add(stringBuilder.toString());
 	}
 
 	@Override
@@ -1628,10 +1632,11 @@ public class TinyASMifier extends Printer {
 		// text.add("import org.objectweb.asm.ClassWriter;\n");
 		// text.add("import org.objectweb.asm.ConstantDynamic;\n");
 		// text.add("import org.objectweb.asm.FieldVisitor;\n");
-		// text.add("import org.objectweb.asm.Handle;\n");
 		text.add("import org.objectweb.asm.Label;\n");
+		text.add("import org.objectweb.asm.Handle;\n");
+		text.add("import org.objectweb.asm.Opcodes;\n");
+
 		// text.add("import org.objectweb.asm.MethodVisitor;\n");
-		// text.add("import org.objectweb.asm.Opcodes;\n");
 		// text.add("import org.objectweb.asm.Type;\n");
 		// text.add("import org.objectweb.asm.TypePath;\n");
 
@@ -1859,13 +1864,13 @@ public class TinyASMifier extends Printer {
 		// stringBuilder.append("{\n");
 		if (!tiny_methodIsStatic) {
 			stringBuilder.append("\t\tMethodCode code = classBody.method(");
-			if (access != (ACC_PUBLIC)) {
+			if (access != 0) {
 				appendAccessFlags(access);
 				stringBuilder.append(", ");
 			}
 		} else {
 			stringBuilder.append("\t\tMethodCode code = classBody.staticMethod(");
-			if (access != (ACC_PUBLIC | ACC_STATIC)) {
+			if (access != (ACC_STATIC)) {
 				appendAccessFlags(access);
 				stringBuilder.append(", ");
 			}
@@ -1881,8 +1886,10 @@ public class TinyASMifier extends Printer {
 			SignatureReader sr = new SignatureReader(signature);
 			ClassSignature signatureVistor = new ClassSignature(super.api, tiny_referedTypes);
 			sr.accept(signatureVistor);
-			stringBuilder.append(signatureVistor.returnClass.toString());
-			stringBuilder.append(", ");
+			if(signatureVistor.returnClass.length()>0) {
+				stringBuilder.append(signatureVistor.returnClass.toString());
+				stringBuilder.append(", ");
+			}
 			appendConstant(name);
 			tiny_methodParamClazzes = signatureVistor.paramsClass;
 			// stringBuilder.append(", ");

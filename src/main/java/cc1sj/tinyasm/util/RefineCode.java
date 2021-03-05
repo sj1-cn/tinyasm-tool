@@ -71,10 +71,11 @@ public class RefineCode {
 		// 去除所有Frame相关东西
 		input = input.replaceAll("methodVisitor.visitFrame[^\\n]*;\\n", "");
 		input = input.replaceAll(visit("methodVisitor.visitMaxs", TYPE.INT, TYPE.INT), "methodVisitor.visitMaxs(1, 1);");
-		input = input.replaceAll(
-				visit("methodVisitor.visitLocalVariable", TYPE.STRING, TYPE.STRING, TYPE.STRING, TYPE.NAME, TYPE.NAME, TYPE.NAME),
-				""//"methodVisitor.visitLocalVariable(local,$2,$3,l0,l1,$6);\n"
-				);
+	
+//		input = input.replaceAll(
+//				visit("methodVisitor.visitLocalVariable", TYPE.STRING, TYPE.STRING, TYPE.STRING, TYPE.NAME, TYPE.NAME, TYPE.NAME),
+//				""//"methodVisitor.visitLocalVariable(local,$2,$3,l0,l1,$6);\n"
+//				);
 		
 		
 		// 内部生成的Class，不包含最后的This
@@ -84,8 +85,8 @@ public class RefineCode {
 
 //		input = input.replaceAll("Label label[0-9]+ = new Label\\(\\);\\n", "");
 		// 忽视行号数字
-//		input = input.replaceAll("methodVisitor.visitLineNumber\\(([0-9]+), label([0-9]+)\\);", "methodVisitor.visitLineNumber(x,label$2);");
-		input = input.replaceAll("methodVisitor.visitLineNumber\\([0-9]+, label[0-9]+\\);\\n", "");
+		input = input.replaceAll("methodVisitor.visitLineNumber\\(([0-9]+), label([0-9]+)\\);", "methodVisitor.visitLineNumber(x,label$2);");
+//		input = input.replaceAll("methodVisitor.visitLineNumber\\([0-9]+, label[0-9]+\\);\\n", "");
 
 		
 
@@ -95,7 +96,7 @@ public class RefineCode {
 //////		input = input.replaceAll("Label label[0-9]+ = new Label\\(\\);", "Label labelx = new Label();");
 ////
 //////		input = input.replaceAll("Label l1 = new Label\\(\\)[^\\n]*;\\n", "");
-		input = input.replaceAll("methodVisitor.visitLabel\\(local\\)[^\\n]*;\\n", "");
+//		input = input.replaceAll("methodVisitor.visitLabel\\(local\\)[^\\n]*;\\n", "");
 ////
 ////
 //		input = input.replaceAll("methodVisitor.visitLocalVariable\\(\\\"this\\$0\\\"[^\\n]*;\\n", "");

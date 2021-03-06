@@ -1862,16 +1862,34 @@ public class TinyASMifier extends Printer {
 		stringBuilder.append("(ClassBody classBody) {\n");
 		// stringBuilder.append("{\n");
 		if (!tiny_methodIsStatic) {
-			stringBuilder.append("\t\tMethodCode code = classBody.method(");
-			if (access != 0) {
-				appendAccessFlags(access);
-				stringBuilder.append(", ");
+			if (access == ACC_PUBLIC) {
+				stringBuilder.append("\t\tMethodCode code = classBody.publicMethod(");
+			} else if (access == ACC_PRIVATE) {
+				stringBuilder.append("\t\tMethodCode code = classBody.privateMethod(");
+			} else if (access == ACC_PROTECTED) {
+				stringBuilder.append("\t\tMethodCode code = classBody.protectedMethod(");
+			} else if (access == 0) {
+				stringBuilder.append("\t\tMethodCode code = classBody.method(");
+			} else {
+				stringBuilder.append("\t\tMethodCode code = classBody.method(");
+				if (access != 0) {
+					appendAccessFlags(access);
+					stringBuilder.append(", ");
+				}
 			}
 		} else {
-			stringBuilder.append("\t\tMethodCode code = classBody.staticMethod(");
-			if (access != (ACC_STATIC)) {
-				appendAccessFlags(access);
-				stringBuilder.append(", ");
+			if (access == (ACC_STATIC&ACC_PUBLIC)) {
+				stringBuilder.append("\t\tMethodCode code = classBody.publicStaticMethod(");
+			} else if (access == (ACC_STATIC&ACC_PRIVATE)) {
+				stringBuilder.append("\t\tMethodCode code = classBody.privateStaticMethod(");
+			} else if (access ==(ACC_STATIC& ACC_PROTECTED)) {
+				stringBuilder.append("\t\tMethodCode code = classBody.protectedStaticMethod(");
+			} else if (access == ACC_STATIC) {
+				stringBuilder.append("\t\tMethodCode code = classBody.staticMethod(");
+			} else {
+				stringBuilder.append("\t\tMethodCode code = classBody.staticMethod(");
+					appendAccessFlags(access);
+					stringBuilder.append(", ");
 			}
 		}
 		tiny_methodParamClazzes = null;
@@ -1885,7 +1903,7 @@ public class TinyASMifier extends Printer {
 			SignatureReader sr = new SignatureReader(signature);
 			ClassSignature signatureVistor = new ClassSignature(super.api, tiny_referedTypes);
 			sr.accept(signatureVistor);
-			if(signatureVistor.returnClass.length()>0) {
+			if (signatureVistor.returnClass.length() > 0) {
 				stringBuilder.append(signatureVistor.returnClass.toString());
 				stringBuilder.append(", ");
 			}

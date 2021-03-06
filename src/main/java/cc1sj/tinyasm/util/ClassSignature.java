@@ -40,7 +40,7 @@ final class ClassSignature extends SignatureVisitor {
 	public void visitFormalTypeParameter(String name) {
 		sb = new StringBuilder();
 		typeParameterClass.add(sb);
-		TinyASMifier.logger.debug("{}visitFormalTypeParameter({})", indent(), name);
+		TinyASMifier.logger.trace("{}visitFormalTypeParameter({})", indent(), name);
 		sb.append("\"");
 		sb.append(name);
 		sb.append("\"");
@@ -50,21 +50,21 @@ final class ClassSignature extends SignatureVisitor {
 
 	@Override
 	public SignatureVisitor visitClassBound() {
-		TinyASMifier.logger.debug("{}visitClassBound()", indent());
+		TinyASMifier.logger.trace("{}visitClassBound()", indent());
 //		level++;
 		return super.visitClassBound();
 	}
 
 	@Override
 	public SignatureVisitor visitInterfaceBound() {
-		TinyASMifier.logger.debug("{}visitInterfaceBound()", indent());
+		TinyASMifier.logger.trace("{}visitInterfaceBound()", indent());
 		return super.visitInterfaceBound();
 	}
 
 	@Override
 	public SignatureVisitor visitSuperclass() {
 		sb = superClass = new StringBuilder();
-		TinyASMifier.logger.debug("{}visitSuperclass()", indent());
+		TinyASMifier.logger.trace("{}visitSuperclass()", indent());
 //		level++;
 		return super.visitSuperclass();
 	}
@@ -74,7 +74,7 @@ final class ClassSignature extends SignatureVisitor {
 		sb = new StringBuilder();
 		interfacesClass.add(sb);
 //			sb.append(",");
-		TinyASMifier.logger.debug("{}visitInterface()", indent());
+		TinyASMifier.logger.trace("{}visitInterface()", indent());
 //		level++;
 		return super.visitInterface();
 	}
@@ -83,7 +83,7 @@ final class ClassSignature extends SignatureVisitor {
 	public SignatureVisitor visitParameterType() {
 		sb = new StringBuilder();
 		paramsClass.add(sb);
-		TinyASMifier.logger.debug("{}visitParameterType()", indent());
+		TinyASMifier.logger.trace("{}visitParameterType()", indent());
 //		level++;
 		return super.visitParameterType();
 	}
@@ -91,20 +91,20 @@ final class ClassSignature extends SignatureVisitor {
 	@Override
 	public SignatureVisitor visitReturnType() {
 		sb = returnClass = new StringBuilder();
-		TinyASMifier.logger.debug("{}visitReturnType()", indent());
+		TinyASMifier.logger.trace("{}visitReturnType()", indent());
 //		level++;
 		return super.visitReturnType();
 	}
 
 	@Override
 	public SignatureVisitor visitExceptionType() {
-		TinyASMifier.logger.debug("{}visitExceptionType()", indent());
+		TinyASMifier.logger.trace("{}visitExceptionType()", indent());
 		return super.visitExceptionType();
 	}
 
 	@Override
 	public void visitBaseType(char descriptor) {
-		TinyASMifier.logger.debug("{}visitBaseType({})", indent(), descriptor);
+		TinyASMifier.logger.trace("{}visitBaseType({})", indent(), descriptor);
 		super.visitBaseType(descriptor);
 	}
 
@@ -113,14 +113,14 @@ final class ClassSignature extends SignatureVisitor {
 		sb.append("Clazz.typeVariableOf(\"");
 		sb.append(name);
 		sb.append("\")");
-		TinyASMifier.logger.debug("{}visitTypeVariable({})", indent(), name);
+		TinyASMifier.logger.trace("{}visitTypeVariable({})", indent(), name);
 		super.visitTypeVariable(name);
 	}
 
 	@Override
 	public SignatureVisitor visitArrayType() {
 		array = true;
-		TinyASMifier.logger.debug("{}visitArrayType()", indent());
+		TinyASMifier.logger.trace("{}visitArrayType()", indent());
 		return super.visitArrayType();
 	}
 
@@ -139,20 +139,20 @@ final class ClassSignature extends SignatureVisitor {
 		}
 		sb.append(".class");
 		
-		TinyASMifier.logger.debug("{}visitClassType({})", indent(), name);
+		TinyASMifier.logger.trace("{}visitClassType({})", indent(), name);
 		level++;
 		super.visitClassType(name);
 	}
 
 	@Override
 	public void visitInnerClassType(String name) {
-		TinyASMifier.logger.debug("{}visitInnerClassType({})", indent(), name);
+		TinyASMifier.logger.trace("{}visitInnerClassType({})", indent(), name);
 		super.visitInnerClassType(name);
 	}
 
 	@Override
 	public void visitTypeArgument() {
-		TinyASMifier.logger.debug("{}visitTypeArgument()", indent());
+		TinyASMifier.logger.trace("{}visitTypeArgument()", indent());
 		array = false;
 		sb.append(",");
 		super.visitTypeArgument();
@@ -161,7 +161,7 @@ final class ClassSignature extends SignatureVisitor {
 	@Override
 	public SignatureVisitor visitTypeArgument(char wildcard) {
 		sb.append(",");
-		TinyASMifier.logger.debug("{}visitTypeArgument({})", indent(), wildcard);
+		TinyASMifier.logger.trace("{}visitTypeArgument({})", indent(), wildcard);
 //		level++;
 		return super.visitTypeArgument(wildcard);
 	}
@@ -171,7 +171,7 @@ final class ClassSignature extends SignatureVisitor {
 		array = false;
 		sb.append(")");
 		level--;
-		TinyASMifier.logger.debug("{}visitEnd()", indent());
+		TinyASMifier.logger.trace("{}visitEnd()", indent());
 		super.visitEnd();
 	}
 }

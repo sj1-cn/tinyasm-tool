@@ -48,7 +48,6 @@ public class RefineCode {
 	public static void add(String match, String replace) {
 		matches.add(match);
 		replaces.add(replace);
-//		System.out.println("match: " + match + " replace: " + replace);
 	}
 
 	public static String excludeLocalVariable(String input) {

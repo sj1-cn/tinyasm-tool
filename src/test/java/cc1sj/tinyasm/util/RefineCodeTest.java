@@ -19,7 +19,6 @@ public class RefineCodeTest {
 //	public void matchTypeDescriptionTest() {
 //		String source = toString(clazz);
 //		source = RefineCode.matchTypeDescription(source);
-//		System.out.println(source.toString());
 //	}
 
 ////
@@ -37,11 +36,5 @@ public class RefineCodeTest {
 	public void testMaddt() {
 		assertEquals("methodVisitor.LOAD(8);\n", RefineCode.replaceAll("methodVisitor.visitVarInsn(DLOAD, 8);\n"));
 	}
-
-//	@Test
-//	public void printClass() {
-//		System.out.println(toString(clazz));
-////		System.out.println(RefineCode.refineCode(toString(clazz)));
-//	}
 
 }

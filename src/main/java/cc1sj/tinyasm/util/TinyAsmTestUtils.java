@@ -4,12 +4,10 @@ import static cc1sj.tinyasm.util.RefineCode.excludeLineNumber;
 import static cc1sj.tinyasm.util.RefineCode.skipToString;
 import static org.junit.Assert.assertEquals;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URL;
@@ -28,21 +26,6 @@ import org.objectweb.asm.util.ASMifier;
 import org.objectweb.asm.util.TraceClassVisitor;
 
 public class TinyAsmTestUtils {
-
-//	static public void assertCodeEquals(String message, byte[] expected, byte[] actual) {
-//
-////		String codeExpected = TinyAsmTestUtils.toString(expectedClazz);
-////
-////		try {
-////			String codeActual = TinyAsmTestUtils.toString(expectedClazz.getName(), dumpTinyAsm(expectedClazz));
-////
-////			assertEquals("Code", codeExpected, codeActual);
-////		} finally {
-////
-////			System.out.println(codeExpected);
-////
-////		}
-//	}
 
 	static public void assertCodeEquals(String message, Class<?> expected, byte[] actual) {
 
@@ -131,13 +114,10 @@ public class TinyAsmTestUtils {
 
 	public static Class<?> loadClass(File file, String className) {
 		String fileUrl = "file:/" + file.getParent();
-		System.out.println(fileUrl);
 		try {
 			URL[] urls = new URL[] { new URL(fileUrl) };
 			URLClassLoader ul = new URLClassLoader(urls, ClassLoader.getSystemClassLoader());
 			Class<?> c = ul.loadClass(className);
-//			System.out.println(c.newInstance().getClass().getName());
-//			Object o = c.newInstance();
 			ul.close();
 			return c;
 		} catch (Exception e) {
@@ -208,7 +188,6 @@ public class TinyAsmTestUtils {
 		try {
 			String expectClazzName = expectedClazz.getName();
 			String tingasmCreatedDumpCode = TinyAsmTestUtils.tinyasmToString(expectedClazz);
-			System.out.println(tingasmCreatedDumpCode);
 
 			String dumpClazz = expectClazzName + "TinyAsmDump";
 

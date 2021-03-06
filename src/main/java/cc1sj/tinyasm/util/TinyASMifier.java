@@ -28,7 +28,6 @@
 package cc1sj.tinyasm.util;
 
 import java.io.IOException;
-import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -892,7 +891,7 @@ public class TinyASMifier extends Printer {
 				SignatureReader sr = new SignatureReader(signature);
 				ClassSignature signatureVistor = new ClassSignature(super.api, tiny_referedTypes);
 				sr.accept(signatureVistor);
-				logger.debug("localvariable({} {}", name, signatureVistor.superClass);
+				logger.trace("visitLocalVariable({} {}", name, signatureVistor.superClass);
 				var.setSignature(signatureVistor.superClass.toString());
 			}
 		}
@@ -1283,21 +1282,21 @@ public class TinyASMifier extends Printer {
 			}
 			stringBuilder.append("})");
 		} else if (value instanceof Byte) {
-			stringBuilder.append("new Byte((byte)").append(value).append(')');
+			stringBuilder.append("Byte.valueOf((byte)").append(value).append(')');
 		} else if (value instanceof Boolean) {
 			stringBuilder.append(((Boolean) value).booleanValue() ? "Boolean.TRUE" : "Boolean.FALSE");
 		} else if (value instanceof Short) {
-			stringBuilder.append("new Short((short)").append(value).append(')');
+			stringBuilder.append("Short.valueOf((short)").append(value).append(')');
 		} else if (value instanceof Character) {
-			stringBuilder.append("new Character((char)").append((int) ((Character) value).charValue()).append(')');
+			stringBuilder.append("Character.valueOf((char)").append((int) ((Character) value).charValue()).append(')');
 		} else if (value instanceof Integer) {
-			stringBuilder.append("new Integer(").append(value).append(')');
+			stringBuilder.append("Integer.valueOf(").append(value).append(')');
 		} else if (value instanceof Float) {
-			stringBuilder.append("new Float(\"").append(value).append("\")");
+			stringBuilder.append("Float.valueOf(\"").append(value).append("\")");
 		} else if (value instanceof Long) {
-			stringBuilder.append("new Long(").append(value).append("L)");
+			stringBuilder.append("Long.valueOf(").append(value).append("L)");
 		} else if (value instanceof Double) {
-			stringBuilder.append("new Double(\"").append(value).append("\")");
+			stringBuilder.append("Double.valueOf(\"").append(value).append("\")");
 		} else if (value instanceof byte[]) {
 			byte[] byteArray = (byte[]) value;
 			stringBuilder.append("new byte[] {");
@@ -1510,7 +1509,7 @@ public class TinyASMifier extends Printer {
 		if (tiny_primativeTypeMaps.containsKey(type.getInternalName())) {
 			return tiny_primativeTypeMaps.get(type.getInternalName());
 		} else if (type.getSort() == Type.ARRAY && type.getElementType().getSort() == Type.OBJECT) {
-			logger.debug("{} Array", type.getElementType());
+			logger.trace("{} Array", type.getElementType());
 			referedTypes.put(type.getElementType().getClassName(), "");
 			return toSimpleName(type.getElementType().getClassName()) + "[].class";
 		} else if (type.getSort() == Type.OBJECT) {
@@ -1845,7 +1844,7 @@ public class TinyASMifier extends Printer {
 		text.add(stringBuilder.toString());
 
 		stringBuilder.setLength(0);
-		logger.debug("visitMethod(final int access, final String {}, final String {}, final String {}, final String[] exceptions)", name,
+		logger.trace("visitMethod(final int access, final String {}, final String {}, final String {}, final String[] exceptions)", name,
 				descriptor, signature);
 		if ((access & ACC_STATIC) > 0) {
 			tiny_methodIsStatic = true;
@@ -2596,7 +2595,7 @@ public class TinyASMifier extends Printer {
 				int stackIndex = tiny_methodLocals.locals.get(i);
 				sb.append(stackIndex);
 			}
-			logger.debug("STACK {}", sb);
+			logger.trace("STACK {}", sb);
 		}
 
 		boolean good = true;

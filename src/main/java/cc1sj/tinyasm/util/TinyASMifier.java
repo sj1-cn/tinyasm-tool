@@ -1911,7 +1911,7 @@ public class TinyASMifier extends Printer {
 			ClassSignature signatureVistor = new ClassSignature(super.api, tiny_referedTypes);
 			sr.accept(signatureVistor);
 			tiny_methodSignatureReturnClass = signatureVistor.returnClass;
-			tiny_methodSignatureParamClazzList = signatureVistor.paramsClass;
+			tiny_methodSignatureParamClazzList = signatureVistor.paramsClassList;
 			tiny_methodSignatureTypeParameterClassList = signatureVistor.typeParameterClassList;
 		}
 		

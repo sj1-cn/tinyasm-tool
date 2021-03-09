@@ -26,11 +26,12 @@ final class ClassSignature extends SignatureVisitor {
 	List<StringBuilder> paramsClass = new ArrayList<>();
 	StringBuilder returnClass;
 	StringBuilder superClass;
-	List<StringBuilder> interfacesClass = new ArrayList<>();
-	List<StringBuilder> typeParameterClass = new ArrayList<>();;
+	List<StringBuilder> interfacesClassList = new ArrayList<>();
+	List<StringBuilder> typeParameterClassList = new ArrayList<>();;
 
 	StringBuilder sb;
 	Map<String, String> referedTypes;
+
 	ClassSignature(int api, Map<String, String> referedTypes) {
 		super(api);
 		this.referedTypes = referedTypes;
@@ -39,7 +40,7 @@ final class ClassSignature extends SignatureVisitor {
 	@Override
 	public void visitFormalTypeParameter(String name) {
 		sb = new StringBuilder();
-		typeParameterClass.add(sb);
+		typeParameterClassList.add(sb);
 		TinyASMifier.logger.trace("{}visitFormalTypeParameter({})", indent(), name);
 		sb.append("\"");
 		sb.append(name);
@@ -72,7 +73,7 @@ final class ClassSignature extends SignatureVisitor {
 	@Override
 	public SignatureVisitor visitInterface() {
 		sb = new StringBuilder();
-		interfacesClass.add(sb);
+		interfacesClassList.add(sb);
 //			sb.append(",");
 		TinyASMifier.logger.trace("{}visitInterface()", indent());
 //		level++;
@@ -112,7 +113,11 @@ final class ClassSignature extends SignatureVisitor {
 	public void visitTypeVariable(String name) {
 		sb.append("Clazz.typeVariableOf(\"");
 		sb.append(name);
-		sb.append("\")");
+		sb.append("\"");
+		if (array) {
+			sb.append(",true");
+		}
+		sb.append(")");
 		TinyASMifier.logger.trace("{}visitTypeVariable({})", indent(), name);
 		super.visitTypeVariable(name);
 	}
@@ -127,18 +132,18 @@ final class ClassSignature extends SignatureVisitor {
 	static String toSimpleName(String str) {
 		return str.substring(str.lastIndexOf('.') + 1, str.length());
 	}
-	
+
 	@Override
 	public void visitClassType(String name) {
 		sb.append("Clazz.of(");
-		String className =name.replace('/', '.');
+		String className = name.replace('/', '.');
 		referedTypes.put(name.replace('/', '.'), "");
 		sb.append(toSimpleName(className));
 		if (array) {
 			sb.append("[]");
 		}
 		sb.append(".class");
-		
+
 		TinyASMifier.logger.trace("{}visitClassType({})", indent(), name);
 		level++;
 		super.visitClassType(name);
@@ -154,7 +159,7 @@ final class ClassSignature extends SignatureVisitor {
 	public void visitTypeArgument() {
 		TinyASMifier.logger.trace("{}visitTypeArgument()", indent());
 		array = false;
-		sb.append(",");
+		sb.append(", Clazz.typeUnboundedVariable()");
 		super.visitTypeArgument();
 	}
 

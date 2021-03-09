@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import static org.objectweb.asm.Opcodes.*;
@@ -326,13 +327,19 @@ public class TinyASMifier extends Printer {
 	@Override
 	public Printer visitMethod(final int access, final String name, final String descriptor, final String signature,
 			final String[] exceptions) {
+
+		this.tiny_methodSignatureParamClazzList =null;
+		this.tiny_methodSignatureTypeParameterClassList=null;
+		this.tiny_methodSignatureReturnClass=null;
+		
 		tiny_visitMethod(access, name, descriptor, signature, exceptions);
 
 		TinyASMifier asmifier = createASMifier("code", 0);
 		asmifier.tiny_methodLocals = tiny_methodLocals;
 		asmifier.tiny_methodVisitParameter = this.tiny_methodVisitParameter;
 		asmifier.tiny_methodParamTypes = this.tiny_methodParamTypes;
-		asmifier.tiny_methodParamClazzes = this.tiny_methodParamClazzes;
+		asmifier.tiny_methodSignatureParamClazzList = this.tiny_methodSignatureParamClazzList;
+		asmifier.tiny_methodSignatureTypeParameterClassList = this.tiny_methodSignatureTypeParameterClassList;
 		asmifier.tiny_methodIsStatic = this.tiny_methodIsStatic;
 		asmifier.tiny_className = this.tiny_className;
 		asmifier.tiny_annotation = new Annotation();
@@ -1462,7 +1469,10 @@ public class TinyASMifier extends Printer {
 	Annotation tiny_annotation;
 
 	Type[] tiny_methodParamTypes;
-	List<StringBuilder> tiny_methodParamClazzes;
+	private List<StringBuilder> tiny_methodSignatureParamClazzList;
+	private List<StringBuilder> tiny_methodSignatureTypeParameterClassList;
+	private StringBuilder tiny_methodSignatureReturnClass;
+
 	Map<String, String> tiny_methodNames = new HashMap<>();
 
 	boolean tiny_methodIsStatic = false;
@@ -1538,7 +1548,7 @@ public class TinyASMifier extends Printer {
 		tiny_hasMakeParameters = true;
 
 		if (tiny_methodParamTypes.length > 0) {
-			if (tiny_methodParamClazzes == null) {
+			if (tiny_methodSignatureParamClazzList == null) {
 				int offset = tiny_methodIsStatic ? 0 : 1;
 				for (int i = 0; i < tiny_methodParamTypes.length; i++) {
 					stringBuilder.setLength(0);
@@ -1561,7 +1571,7 @@ public class TinyASMifier extends Printer {
 				}
 			} else {
 				int offset = tiny_methodIsStatic ? 0 : 1;
-				for (int i = 0; i < tiny_methodParamClazzes.size(); i++) {
+				for (int i = 0; i < tiny_methodSignatureParamClazzList.size(); i++) {
 					stringBuilder.setLength(0);
 					Var var = tiny_methodLocals.stack.get(i + offset);
 					stringBuilder.append("\n\t\t\t.parameter(");
@@ -1577,8 +1587,8 @@ public class TinyASMifier extends Printer {
 					text.add(var);
 					stringBuilder.append("\",");
 					// TODO 应该不需要这样。对应signation出错的场合
-					if (tiny_methodParamClazzes.get(i).length() > 0) {
-						stringBuilder.append(tiny_methodParamClazzes.get(i));
+					if (tiny_methodSignatureParamClazzList.get(i).length() > 0) {
+						stringBuilder.append(tiny_methodSignatureParamClazzList.get(i));
 					} else {
 						stringBuilder.append(clazzOf(tiny_methodParamTypes[i], tiny_referedTypes));
 					}
@@ -1692,7 +1702,7 @@ public class TinyASMifier extends Printer {
 			if (interfaces != null && interfaces.length > 0) {
 				if (!hasSuperClass) {
 					stringBuilder.append(", ");
-					stringBuilder.append("null");
+					stringBuilder.append(clazzOf(Type.getObjectType(superName), tiny_referedTypes));
 				}
 				// stringBuilder.append("new String[] {");
 				for (int i = 0; i < interfaces.length; ++i) {
@@ -1715,13 +1725,13 @@ public class TinyASMifier extends Printer {
 			ClassSignature signatureVistor = new ClassSignature(super.api, tiny_referedTypes);
 			sr.accept(signatureVistor);
 			stringBuilder.append(signatureVistor.superClass.toString());
-			for (StringBuilder string : signatureVistor.interfacesClass) {
+			for (StringBuilder string : signatureVistor.interfacesClassList) {
 				stringBuilder.append(",");
 				stringBuilder.append(string);
 			}
 			// stringBuilder.append(signatureVistor.interfacesClass.toString());
 			stringBuilder.append(")");
-			for (StringBuilder string : signatureVistor.typeParameterClass) {
+			for (StringBuilder string : signatureVistor.typeParameterClassList) {
 				stringBuilder.append(".formalTypeParameter(");
 				stringBuilder.append(string);
 				stringBuilder.append(")");
@@ -1878,42 +1888,59 @@ public class TinyASMifier extends Printer {
 				}
 			}
 		} else {
-			if (access == (ACC_STATIC&ACC_PUBLIC)) {
+			if (access == (ACC_STATIC & ACC_PUBLIC)) {
 				stringBuilder.append("\t\tMethodCode code = classBody.publicStaticMethod(");
-			} else if (access == (ACC_STATIC&ACC_PRIVATE)) {
+			} else if (access == (ACC_STATIC & ACC_PRIVATE)) {
 				stringBuilder.append("\t\tMethodCode code = classBody.privateStaticMethod(");
-			} else if (access ==(ACC_STATIC& ACC_PROTECTED)) {
+			} else if (access == (ACC_STATIC & ACC_PROTECTED)) {
 				stringBuilder.append("\t\tMethodCode code = classBody.protectedStaticMethod(");
 			} else if (access == ACC_STATIC) {
 				stringBuilder.append("\t\tMethodCode code = classBody.staticMethod(");
 			} else {
 				stringBuilder.append("\t\tMethodCode code = classBody.staticMethod(");
-					appendAccessFlags(access);
-					stringBuilder.append(", ");
-			}
-		}
-		tiny_methodParamClazzes = null;
-		if (signature == null) {
-			if (returnType != Type.VOID_TYPE) {
-				stringBuilder.append(clazzOf(returnType, tiny_referedTypes));
+				appendAccessFlags(access);
 				stringBuilder.append(", ");
 			}
-			appendConstant(name);
-		} else {
+		}
+		appendConstant(name);
+		stringBuilder.append(")");
+		
+		
+		if(signature!=null) {
 			SignatureReader sr = new SignatureReader(signature);
 			ClassSignature signatureVistor = new ClassSignature(super.api, tiny_referedTypes);
 			sr.accept(signatureVistor);
-			if (signatureVistor.returnClass.length() > 0) {
-				stringBuilder.append(signatureVistor.returnClass.toString());
-				stringBuilder.append(", ");
-			}
-			appendConstant(name);
-			tiny_methodParamClazzes = signatureVistor.paramsClass;
-			// stringBuilder.append(", ");
-			// stringBuilder.append(signatureVistor.paramsClass.toString());
+			tiny_methodSignatureReturnClass = signatureVistor.returnClass;
+			tiny_methodSignatureParamClazzList = signatureVistor.paramsClass;
+			tiny_methodSignatureTypeParameterClassList = signatureVistor.typeParameterClassList;
 		}
+		
+		//Return
+		if (signature == null) {
+			if (returnType != Type.VOID_TYPE) {
+				stringBuilder.append("\n\t\t\t.reTurn(");
+				stringBuilder.append(clazzOf(returnType, tiny_referedTypes));
+				stringBuilder.append(" )");
+			}
+		} else if(tiny_methodSignatureReturnClass.length()>0){
+			stringBuilder.append("\n\t\t\t.reTurn(");
+			stringBuilder.append(tiny_methodSignatureReturnClass);
+			stringBuilder.append(" )");
+		}
+		//Type
+		if (signature != null) {
+			if (tiny_methodSignatureTypeParameterClassList.size()>0) {
+				for (int i = 0; i < tiny_methodSignatureTypeParameterClassList.size(); i++) {
+					stringBuilder.append("\n\t\t\t.formalTypeParameter(");
+					stringBuilder.append(tiny_methodSignatureTypeParameterClassList.get(i));
+					stringBuilder.append(" )");
+				}
+			}
+		} 
+		
+//		tiny_methodSignatureParamClazzList = null;
 
-		stringBuilder.append(")");
+
 		tiny_textMethods.add(stringBuilder.toString());
 		stringBuilder.setLength(0);
 

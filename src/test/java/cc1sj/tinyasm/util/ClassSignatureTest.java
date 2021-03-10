@@ -42,7 +42,7 @@ public class ClassSignatureTest {
 		ClassSignature signatureVistor = new ClassSignature(Opcodes.ASM9, tiny_referedTypes);
 		sr.accept(signatureVistor);
 //		logger.trace("visitLocalVariable({} {}", name, signatureVistor.superClass);
-		assertEquals("Clazz.of(Class.class,Clazz.typeVariableOf(\"T\"))", signatureVistor.superClass.toString());
+		assertEquals("Clazz.of(Class.class,Clazz.typeArgument(Clazz.typeVariableOf(\"T\")))", signatureVistor.superClass.toString());
 
 	}
 
@@ -106,5 +106,23 @@ public class ClassSignatureTest {
 //		assertEquals(null, classSignaturewwww.superClazz);
 //		assertEquals(0, classSignaturewwww.typeParamenterClazzes.length);
 	}
+	
+
+	@Test
+	public void test_basetypessssss_() {
+		String signature = "(Ljava/util/function/Consumer<-TE;>;)V";
+		Map<String, String> tiny_referedTypes = new HashMap<String, String>();
+
+		SignatureReader sr = new SignatureReader(signature);
+		ClassSignature signatureVistor = new ClassSignature(Opcodes.ASM9, tiny_referedTypes);
+		sr.accept(signatureVistor);
+//		logger.trace("visitLocalVariable({} {}", name, signatureVistor.superClass);
+		assertEquals("Clazz.of(void.class)", signatureVistor.returnClass.toString());
+		assertEquals("[]", signatureVistor.typeParameterClassList.toString());
+		assertEquals("Clazz.of(Consumer.class,Clazz.typeArgument('-',Clazz.typeVariableOf(\"E\")))", signatureVistor.paramsClassList.get(0).toString());
+
+	}
+
+	
 //	signatureVistor.returnClass
 }

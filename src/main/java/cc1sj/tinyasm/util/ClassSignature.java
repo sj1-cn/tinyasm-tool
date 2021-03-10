@@ -45,6 +45,8 @@ final class ClassSignature extends SignatureVisitor {
 		sb.append(name);
 		sb.append("\"");
 		sb.append(",");
+		array = false;
+		typeArgument = DEFAULT_TypeArgument;
 		super.visitFormalTypeParameter(name);
 	}
 
@@ -64,6 +66,8 @@ final class ClassSignature extends SignatureVisitor {
 	public SignatureVisitor visitSuperclass() {
 		logger.debug("{}visitSuperclass()", indent());
 		sb = superClass = new StringBuilder();
+		array = false;
+		typeArgument = DEFAULT_TypeArgument;
 		return this;
 	}
 
@@ -72,6 +76,8 @@ final class ClassSignature extends SignatureVisitor {
 		logger.debug("{}visitInterface()", indent());
 		sb = new StringBuilder();
 		interfacesClassList.add(sb);
+		array = false;
+		typeArgument = DEFAULT_TypeArgument;
 		return this;
 	}
 
@@ -80,6 +86,8 @@ final class ClassSignature extends SignatureVisitor {
 		logger.debug("{}visitParameterType()", indent());
 		sb = new StringBuilder();
 		paramsClassList.add(sb);
+		array = false;
+		typeArgument = DEFAULT_TypeArgument;
 		return this;
 	}
 
@@ -87,6 +95,8 @@ final class ClassSignature extends SignatureVisitor {
 	public SignatureVisitor visitReturnType() {
 		logger.debug("{}visitReturnType()", indent());
 		sb = returnClass = new StringBuilder();
+		array = false;
+		typeArgument = DEFAULT_TypeArgument;
 		return this;
 	}
 
@@ -112,13 +122,33 @@ final class ClassSignature extends SignatureVisitor {
 	@Override
 	public void visitTypeVariable(String name) {
 		logger.debug("{}visitTypeVariable({})", indent(), name);
-		sb.append("Clazz.typeVariableOf(\"");
-		sb.append(name);
-		sb.append("\"");
-		if (array) {
-			sb.append(",true");
+		if (typeArgument > DEFAULT_TypeArgument) {
+			sb.append("Clazz.typeArgument(");
+			if (typeArgument != '=') {
+				sb.append("'");
+				sb.append(typeArgument);
+				sb.append("'");
+				sb.append(",");
+			}
+			sb.append("Clazz.typeVariableOf(\"");
+			sb.append(name);
+			sb.append("\"");
+			if (array) {
+				sb.append(",true");
+			}
+			sb.append(")");
+			sb.append(")");
+
+		} else {
+			sb.append("Clazz.typeVariableOf(\"");
+			sb.append(name);
+			sb.append("\"");
+			if (array) {
+				sb.append(",true");
+			}
+			sb.append(")");
 		}
-		sb.append(")");
+		typeArgument = DEFAULT_TypeArgument;
 	}
 
 	@Override
@@ -137,10 +167,13 @@ final class ClassSignature extends SignatureVisitor {
 		logger.debug("{}visitClassType({})", indent(), name);
 		level++;
 		if (typeArgument > DEFAULT_TypeArgument && typeArgument != '=') {
-			sb.append("Clazz.typeArgument('");
-			sb.append(typeArgument);
-			sb.append("'");
-			sb.append(",");
+			sb.append("Clazz.typeArgument(");
+			if (typeArgument != '=') {
+				sb.append("'");
+				sb.append(typeArgument);
+				sb.append("'");
+				sb.append(",");
+			}
 			String className = name.replace('/', '.');
 			referedTypes.put(name.replace('/', '.'), "");
 			sb.append(toSimpleName(className));
@@ -148,7 +181,7 @@ final class ClassSignature extends SignatureVisitor {
 				sb.append("[]");
 			}
 			sb.append(".class");
-		}else{
+		} else {
 			sb.append("Clazz.of(");
 			String className = name.replace('/', '.');
 			referedTypes.put(name.replace('/', '.'), "");

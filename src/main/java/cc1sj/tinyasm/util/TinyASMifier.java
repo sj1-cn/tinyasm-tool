@@ -327,10 +327,10 @@ public class TinyASMifier extends Printer {
 	public Printer visitMethod(final int access, final String name, final String descriptor, final String signature,
 			final String[] exceptions) {
 
-		this.tiny_methodSignatureParamClazzList =null;
-		this.tiny_methodSignatureTypeParameterClassList=null;
-		this.tiny_methodSignatureReturnClass=null;
-		
+		this.tiny_methodSignatureParamClazzList = null;
+		this.tiny_methodSignatureTypeParameterClassList = null;
+		this.tiny_methodSignatureReturnClass = null;
+
 		tiny_visitMethod(access, name, descriptor, signature, exceptions);
 
 		TinyASMifier asmifier = createASMifier("code", 0);
@@ -1690,7 +1690,7 @@ public class TinyASMifier extends Printer {
 		stringBuilder.setLength(0);
 		/// stringBuilder.append("classBody.visit(");
 		if (signature == null) {
-			stringBuilder.append("\t\tClassBody classBody = ClassBuilder.make(className");
+			stringBuilder.append("\t\tClassBody classBody = ClassBuilder.class_(className");
 			// appendConstant(name.replace('/', '.'));
 			boolean hasSuperClass = false;
 			if (!Object.class.getName().equals(superName.replace('/', '.'))) {
@@ -1716,7 +1716,7 @@ public class TinyASMifier extends Printer {
 			}
 			stringBuilder.append(")");
 		} else {
-			stringBuilder.append("\t\tClassBody classBody = ClassBuilder.make(className");
+			stringBuilder.append("\t\tClassBody classBody = ClassBuilder.class_(className");
 
 			// appendConstant(name.replace('/', '.'));
 			stringBuilder.append(", ");
@@ -1760,8 +1760,16 @@ public class TinyASMifier extends Printer {
 			}
 		} else {
 
-			stringBuilder.append("\t\tclassBody.field(");
-			if (access != (ACC_PRIVATE)) {// access
+			if (access == ACC_PUBLIC) {
+				stringBuilder.append("\t\tclassBody.public_().field(");
+			} else if (access == ACC_PRIVATE) {
+				stringBuilder.append("\t\tclassBody.private_().field(");
+			} else if (access == ACC_PROTECTED) {
+				stringBuilder.append("\t\tclassBody.protected_().field(");
+			} else if (access == 0) {
+				stringBuilder.append("\t\tclassBody.field(");
+			}else {
+				stringBuilder.append("\t\tclassBody.field(");
 				appendAccessFlags(access);
 				stringBuilder.append(", ");
 			}
@@ -1872,11 +1880,11 @@ public class TinyASMifier extends Printer {
 		// stringBuilder.append("{\n");
 		if (!tiny_methodIsStatic) {
 			if (access == ACC_PUBLIC) {
-				stringBuilder.append("\t\tMethodCode code = classBody.publicMethod(");
+				stringBuilder.append("\t\tMethodCode code = classBody.public_().method(");
 			} else if (access == ACC_PRIVATE) {
-				stringBuilder.append("\t\tMethodCode code = classBody.privateMethod(");
+				stringBuilder.append("\t\tMethodCode code = classBody.private_().method(");
 			} else if (access == ACC_PROTECTED) {
-				stringBuilder.append("\t\tMethodCode code = classBody.protectedMethod(");
+				stringBuilder.append("\t\tMethodCode code = classBody.protected_().method(");
 			} else if (access == 0) {
 				stringBuilder.append("\t\tMethodCode code = classBody.method(");
 			} else {
@@ -1903,9 +1911,8 @@ public class TinyASMifier extends Printer {
 		}
 		appendConstant(name);
 		stringBuilder.append(")");
-		
-		
-		if(signature!=null) {
+
+		if (signature != null) {
 			SignatureReader sr = new SignatureReader(signature);
 			ClassSignature signatureVistor = new ClassSignature(super.api, tiny_referedTypes);
 			sr.accept(signatureVistor);
@@ -1913,32 +1920,31 @@ public class TinyASMifier extends Printer {
 			tiny_methodSignatureParamClazzList = signatureVistor.paramsClassList;
 			tiny_methodSignatureTypeParameterClassList = signatureVistor.typeParameterClassList;
 		}
-		
-		//Return
+
+		// Return
 		if (signature == null) {
 			if (returnType != Type.VOID_TYPE) {
-				stringBuilder.append("\n\t\t\t.reTurn(");
+				stringBuilder.append("\n\t\t\t.return_(");
 				stringBuilder.append(clazzOf(returnType, tiny_referedTypes));
 				stringBuilder.append(" )");
 			}
-		} else if(tiny_methodSignatureReturnClass.length()>0){
-			stringBuilder.append("\n\t\t\t.reTurn(");
+		} else if (tiny_methodSignatureReturnClass.length() > 0) {
+			stringBuilder.append("\n\t\t\t.return_(");
 			stringBuilder.append(tiny_methodSignatureReturnClass);
 			stringBuilder.append(" )");
 		}
-		//Type
+		// Type
 		if (signature != null) {
-			if (tiny_methodSignatureTypeParameterClassList.size()>0) {
+			if (tiny_methodSignatureTypeParameterClassList.size() > 0) {
 				for (int i = 0; i < tiny_methodSignatureTypeParameterClassList.size(); i++) {
 					stringBuilder.append("\n\t\t\t.formalTypeParameter(");
 					stringBuilder.append(tiny_methodSignatureTypeParameterClassList.get(i));
 					stringBuilder.append(" )");
 				}
 			}
-		} 
-		
-//		tiny_methodSignatureParamClazzList = null;
+		}
 
+//		tiny_methodSignatureParamClazzList = null;
 
 		tiny_textMethods.add(stringBuilder.toString());
 		stringBuilder.setLength(0);
@@ -1946,7 +1952,7 @@ public class TinyASMifier extends Printer {
 		if (exceptions != null && exceptions.length > 0) {
 			// stringBuilder.append("new String[] {");
 			for (int i = 0; i < exceptions.length; ++i) {
-				stringBuilder.append("\n\t\t\t.tHrow(");
+				stringBuilder.append("\n\t\t\t.throws_(");
 				stringBuilder.append(clazzOf(Type.getObjectType(exceptions[i]), tiny_referedTypes));
 				stringBuilder.append(" )");
 			}
@@ -2607,7 +2613,7 @@ public class TinyASMifier extends Printer {
 		stringBuilder.append(")");
 		Type returnType = Type.getReturnType(descriptor);
 		if (returnType != Type.VOID_TYPE) {
-			stringBuilder.append("\n\t\t\t.reTurn(");
+			stringBuilder.append("\n\t\t\t.return_(");
 			stringBuilder.append(clazzOf(returnType, tiny_referedTypes));
 			stringBuilder.append(")");
 		}

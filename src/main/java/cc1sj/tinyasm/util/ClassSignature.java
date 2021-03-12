@@ -38,7 +38,7 @@ final class ClassSignature extends SignatureVisitor {
 
 	@Override
 	public void visitFormalTypeParameter(String name) {
-		logger.debug("{}visitFormalTypeParameter({})", indent(), name);
+		logger.trace("{}visitFormalTypeParameter({})", indent(), name);
 		sb = new StringBuilder();
 		typeParameterClassList.add(sb);
 		sb.append("\"");
@@ -52,19 +52,19 @@ final class ClassSignature extends SignatureVisitor {
 
 	@Override
 	public SignatureVisitor visitClassBound() { // L
-		logger.debug("{}visitClassBound()", indent());
+		logger.trace("{}visitClassBound()", indent());
 		return this;
 	}
 
 	@Override
 	public SignatureVisitor visitInterfaceBound() {
-		logger.debug("{}visitInterfaceBound()", indent());
+		logger.trace("{}visitInterfaceBound()", indent());
 		return this;
 	}
 
 	@Override
 	public SignatureVisitor visitSuperclass() {
-		logger.debug("{}visitSuperclass()", indent());
+		logger.trace("{}visitSuperclass()", indent());
 		sb = superClass = new StringBuilder();
 		array = false;
 		typeArgument = DEFAULT_TypeArgument;
@@ -73,7 +73,7 @@ final class ClassSignature extends SignatureVisitor {
 
 	@Override
 	public SignatureVisitor visitInterface() {
-		logger.debug("{}visitInterface()", indent());
+		logger.trace("{}visitInterface()", indent());
 		sb = new StringBuilder();
 		interfacesClassList.add(sb);
 		array = false;
@@ -83,7 +83,7 @@ final class ClassSignature extends SignatureVisitor {
 
 	@Override
 	public SignatureVisitor visitParameterType() {
-		logger.debug("{}visitParameterType()", indent());
+		logger.trace("{}visitParameterType()", indent());
 		sb = new StringBuilder();
 		paramsClassList.add(sb);
 		array = false;
@@ -93,7 +93,7 @@ final class ClassSignature extends SignatureVisitor {
 
 	@Override
 	public SignatureVisitor visitReturnType() {
-		logger.debug("{}visitReturnType()", indent());
+		logger.trace("{}visitReturnType()", indent());
 		sb = returnClass = new StringBuilder();
 		array = false;
 		typeArgument = DEFAULT_TypeArgument;
@@ -102,13 +102,13 @@ final class ClassSignature extends SignatureVisitor {
 
 	@Override
 	public SignatureVisitor visitExceptionType() {
-		logger.debug("{}visitExceptionType()", indent());
+		logger.trace("{}visitExceptionType()", indent());
 		return this;
 	}
 
 	@Override
 	public void visitBaseType(char descriptor) {
-		logger.debug("{}visitBaseType({})", indent(), descriptor);
+		logger.trace("{}visitBaseType({})", indent(), descriptor);
 		sb.append("Clazz.of(");
 		Type type = Type.getType(String.valueOf(descriptor));
 		sb.append(type.getClassName());
@@ -121,7 +121,7 @@ final class ClassSignature extends SignatureVisitor {
 
 	@Override
 	public void visitTypeVariable(String name) {
-		logger.debug("{}visitTypeVariable({})", indent(), name);
+		logger.trace("{}visitTypeVariable({})", indent(), name);
 		if (typeArgument > DEFAULT_TypeArgument) {
 			sb.append("Clazz.typeArgument(");
 			if (typeArgument != '=') {
@@ -154,7 +154,7 @@ final class ClassSignature extends SignatureVisitor {
 	@Override
 	public SignatureVisitor visitArrayType() {
 		array = true;
-		logger.debug("{}visitArrayType()", indent());
+		logger.trace("{}visitArrayType()", indent());
 		return this;
 	}
 
@@ -164,7 +164,7 @@ final class ClassSignature extends SignatureVisitor {
 
 	@Override
 	public void visitClassType(String name) {
-		logger.debug("{}visitClassType({})", indent(), name);
+		logger.trace("{}visitClassType({})", indent(), name);
 		level++;
 		if (typeArgument > DEFAULT_TypeArgument && typeArgument != '=') {
 			sb.append("Clazz.typeArgument(");
@@ -196,7 +196,7 @@ final class ClassSignature extends SignatureVisitor {
 
 	@Override
 	public void visitInnerClassType(String name) {
-		logger.debug("{}visitInnerClassType({})", indent(), name);
+		logger.trace("{}visitInnerClassType({})", indent(), name);
 	}
 
 	final static char DEFAULT_TypeArgument = (char) 0;
@@ -204,14 +204,14 @@ final class ClassSignature extends SignatureVisitor {
 
 	@Override
 	public void visitTypeArgument() {
-		logger.debug("{}visitTypeArgument()", indent());
+		logger.trace("{}visitTypeArgument()", indent());
 		array = false;
 		sb.append(", Clazz.typeUnboundedTypeArgument()");
 	}
 
 	@Override
 	public SignatureVisitor visitTypeArgument(char wildcard) {
-		logger.debug("{}visitTypeArgument({})", indent(), wildcard);
+		logger.trace("{}visitTypeArgument({})", indent(), wildcard);
 		sb.append(",");
 		typeArgument = wildcard;
 		return this;
@@ -222,7 +222,7 @@ final class ClassSignature extends SignatureVisitor {
 		sb.append(")");
 		array = false;
 		level--;
-		logger.debug("{}visitEnd()", indent());
+		logger.trace("{}visitEnd()", indent());
 		super.visitEnd();
 	}
 

@@ -25,7 +25,7 @@
 // CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 // THE POSSIBILITY OF SUCH DAMAGE.
-package cc1sj.tinyasm.util;
+package cn.sj1.tinyasm.util;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -48,7 +48,7 @@ import org.objectweb.asm.util.Printer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import cc1sj.tinyasm.util.TinyLocalsStack.Var;
+import cn.sj1.tinyasm.util.TinyLocalsStack.Var;
 
 /**
  * A {@link Printer} that prints the ASM code to generate the classes if visits.
@@ -1631,15 +1631,15 @@ public class TinyASMifier extends Printer {
 		// text.add("import org.objectweb.asm.Type;\n");
 		// text.add("import org.objectweb.asm.TypePath;\n");
 
-		text.add("import cc1sj.tinyasm.ClassBody;\n");
-		text.add("import cc1sj.tinyasm.ClassBuilder;\n");
-		text.add("import cc1sj.tinyasm.MethodCode;\n");
+		text.add("import cn.sj1.tinyasm.ClassBody;\n");
+		text.add("import cn.sj1.tinyasm.ClassBuilder;\n");
+		text.add("import cn.sj1.tinyasm.MethodCode;\n");
 		text.add("import org.objectweb.asm.Type;\n");
 
 		text.add("import static org.objectweb.asm.Opcodes.*;\n");
 
-		text.add("import cc1sj.tinyasm.Annotation;\n");
-		text.add("import cc1sj.tinyasm.Clazz;\n");
+		text.add("import cn.sj1.tinyasm.Annotation;\n");
+		text.add("import cn.sj1.tinyasm.Clazz;\n");
 		text.add(new TinyHolderReferTypes());
 
 		text.add("@SuppressWarnings(\"unused\")\n");
@@ -1660,7 +1660,7 @@ public class TinyASMifier extends Printer {
 		// text.add("AnnotationVisitor annotationVisitor0;\n\n");
 
 		// ClassBody classBody =
-		// ClassBuilder.make("cc1sj.tinyasm.util.SimpleSample").body();
+		// ClassBuilder.make("cn.sj1.tinyasm.util.SimpleSample").body();
 		// ClassSignature = ( visitFormalTypeParameter visitClassBound?
 		// visitInterfaceBound* )* (visitSuperclass visitInterface* )
 		// MethodSignature = ( visitFormalTypeParameter visitClassBound?

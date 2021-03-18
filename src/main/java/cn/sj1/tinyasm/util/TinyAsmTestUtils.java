@@ -1,7 +1,7 @@
-package cc1sj.tinyasm.util;
+package cn.sj1.tinyasm.util;
 
-import static cc1sj.tinyasm.util.RefineCode.excludeLineNumber;
-import static cc1sj.tinyasm.util.RefineCode.skipToString;
+import static cn.sj1.tinyasm.util.RefineCode.excludeLineNumber;
+import static cn.sj1.tinyasm.util.RefineCode.skipToString;
 import static org.junit.Assert.assertEquals;
 
 import java.io.File;

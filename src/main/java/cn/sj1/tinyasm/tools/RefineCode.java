@@ -1,4 +1,4 @@
-package cn.sj1.tinyasm.util;
+package cn.sj1.tinyasm.tools;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -54,11 +54,6 @@ public class RefineCode {
 		input = input.replaceAll("methodVisitor.visitLocalVariable[^\\n]*;\\n", "");
 		return input;
 	}
-	/**
-	 * 暂时不需要的代码
-	 * @param input
-	 * @return
-	 */
 	// 去新的ASM框架无法处理返回值导致连续无用的ASTORE ALOAD
 //	input = input.replaceAll("methodVisitor[.]visitVarInsn\\(ASTORE, [0-9]*\\);\\n" + "Label label[0-9]+ = new Label\\(\\);\\n"
 //			+ "methodVisitor[.]visitLabel\\(label[0-9]+\\);\\n" + "methodVisitor[.]visitLineNumber\\([0-9]+, label[0-9]+\\);\\n"

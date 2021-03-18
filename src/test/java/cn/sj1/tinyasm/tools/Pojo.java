@@ -1,4 +1,4 @@
-package cn.sj1.tinyasm.util;
+package cn.sj1.tinyasm.tools;
 
 public class Pojo {
 	private int i1;

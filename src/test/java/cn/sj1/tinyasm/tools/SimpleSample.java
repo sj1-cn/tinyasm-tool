@@ -1,4 +1,4 @@
-package cn.sj1.tinyasm.util;
+package cn.sj1.tinyasm.tools;
 
 public class SimpleSample {
 	int i = 0;

@@ -1,8 +1,7 @@
-package cn.sj1.tinyasm.util;
+package cn.sj1.tinyasm.tools;
 
-import static cn.sj1.tinyasm.util.RefineCode.excludeLineNumber;
-import static cn.sj1.tinyasm.util.RefineCode.skipToString;
-import static org.junit.Assert.assertEquals;
+import static cn.sj1.tinyasm.tools.RefineCode.excludeLineNumber;
+import static cn.sj1.tinyasm.tools.RefineCode.skipToString;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -26,16 +25,6 @@ import org.objectweb.asm.util.ASMifier;
 import org.objectweb.asm.util.TraceClassVisitor;
 
 public class TinyAsmTestUtils {
-
-	static public void assertCodeEquals(String message, Class<?> expected, byte[] actual) {
-
-		String codeExpected = TinyAsmTestUtils.toString(expected);
-
-		String codeActual = TinyAsmTestUtils.toString(expected.getName(), dumpTinyAsm(expected));
-
-		assertEquals(message, codeExpected, codeActual);
-
-	}
 
 	public static String tinyasmToString(Class<?> clazz) {
 		try {

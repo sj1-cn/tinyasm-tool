@@ -25,16 +25,17 @@
 // CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 // THE POSSIBILITY OF SUCH DAMAGE.
-package cn.sj1.tinyasm.util;
+package cn.sj1.tinyasm.tools;
 
-import java.io.IOException;
+import static org.objectweb.asm.Opcodes.*;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import static org.objectweb.asm.Opcodes.*;
+
 import org.objectweb.asm.Attribute;
 import org.objectweb.asm.ConstantDynamic;
 import org.objectweb.asm.Handle;
@@ -48,7 +49,7 @@ import org.objectweb.asm.util.Printer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import cn.sj1.tinyasm.util.TinyLocalsStack.Var;
+import cn.sj1.tinyasm.tools.TinyLocalsStack.Var;
 
 /**
  * A {@link Printer} that prints the ASM code to generate the classes if visits.
@@ -152,33 +153,33 @@ public class TinyASMifier extends Printer {
 		this.id = annotationVisitorId;
 	}
 
-	/**
-	 * Prints the ASM source code to generate the given class to the standard
-	 * output.
-	 *
-	 * <p>
-	 * Usage: ASMifier [-nodebug] &lt;binary class name or class file name&gt;
-	 *
-	 * @param args the command line arguments.
-	 * @throws IOException if the class cannot be found, or if an IOException
-	 *                     occurs.
-	 */
+//	/**
+//	 * Prints the ASM source code to generate the given class to the standard
+//	 * output.
+//	 *
+//	 * <p>
+//	 * Usage: ASMifier [-nodebug] &lt;binary class name or class file name&gt;
+//	 *
+//	 * @param args the command line arguments.
+//	 * @throws IOException if the class cannot be found, or if an IOException
+//	 *                     occurs.
+//	 */
 //	public static void main(final String[] args) throws IOException {
 //		main(args, new PrintWriter(System.out, true), new PrintWriter(System.err, true));
 //	}
-
-	/**
-	 * Prints the ASM source code to generate the given class to the given output.
-	 *
-	 * <p>
-	 * Usage: ASMifier [-nodebug] &lt;binary class name or class file name&gt;
-	 *
-	 * @param args   the command line arguments.
-	 * @param output where to print the result.
-	 * @param logger where to log errors.
-	 * @throws IOException if the class cannot be found, or if an IOException
-	 *                     occurs.
-	 */
+//
+//	/**
+//	 * Prints the ASM source code to generate the given class to the given output.
+//	 *
+//	 * <p>
+//	 * Usage: ASMifier [-nodebug] &lt;binary class name or class file name&gt;
+//	 *
+//	 * @param args   the command line arguments.
+//	 * @param output where to print the result.
+//	 * @param logger where to log errors.
+//	 * @throws IOException if the class cannot be found, or if an IOException
+//	 *                     occurs.
+//	 */
 //	static void main(final String[] args, final PrintWriter output, final PrintWriter logger) throws IOException {
 //		main(args, USAGE, new TinyASMifier(), output, logger);
 //	}
@@ -1631,15 +1632,15 @@ public class TinyASMifier extends Printer {
 		// text.add("import org.objectweb.asm.Type;\n");
 		// text.add("import org.objectweb.asm.TypePath;\n");
 
-		text.add("import cn.sj1.tinyasm.ClassBody;\n");
-		text.add("import cn.sj1.tinyasm.ClassBuilder;\n");
-		text.add("import cn.sj1.tinyasm.MethodCode;\n");
+		text.add("import cn.sj1.tinyasm.core.ClassBody;\n");
+		text.add("import cn.sj1.tinyasm.core.ClassBuilder;\n");
+		text.add("import cn.sj1.tinyasm.core.MethodCode;\n");
 		text.add("import org.objectweb.asm.Type;\n");
 
 		text.add("import static org.objectweb.asm.Opcodes.*;\n");
 
-		text.add("import cn.sj1.tinyasm.Annotation;\n");
-		text.add("import cn.sj1.tinyasm.Clazz;\n");
+		text.add("import cn.sj1.tinyasm.core.Annotation;\n");
+		text.add("import cn.sj1.tinyasm.core.Clazz;\n");
 		text.add(new TinyHolderReferTypes());
 
 		text.add("@SuppressWarnings(\"unused\")\n");
@@ -1660,7 +1661,7 @@ public class TinyASMifier extends Printer {
 		// text.add("AnnotationVisitor annotationVisitor0;\n\n");
 
 		// ClassBody classBody =
-		// ClassBuilder.make("cn.sj1.tinyasm.util.SimpleSample").body();
+		// ClassBuilder.make("cn.sj1.tinyasm.core.util.SimpleSample").body();
 		// ClassSignature = ( visitFormalTypeParameter visitClassBound?
 		// visitInterfaceBound* )* (visitSuperclass visitInterface* )
 		// MethodSignature = ( visitFormalTypeParameter visitClassBound?

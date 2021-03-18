@@ -61,8 +61,7 @@ public class TinyASMifier extends Printer {
 
 	/** The help message shown when command line arguments are incorrect. */
 	@SuppressWarnings("unused")
-	private static final String USAGE = "Prints the ASM code to generate the given class.\n"
-			+ "Usage: ASMifier [-nodebug] <fully qualified class name or class file name>";
+	private static final String USAGE = "Prints the ASM code to generate the given class.\n" + "Usage: ASMifier [-nodebug] <fully qualified class name or class file name>";
 
 	/** A pseudo access flag used to distinguish class access flags. */
 	private static final int ACCESS_CLASS = 0x40000;
@@ -84,8 +83,7 @@ public class TinyASMifier extends Printer {
 	private static final String NEW_OBJECT_ARRAY = ", new Object[] {";
 	private static final String VISIT_END = ".visitEnd();\n";
 
-	private static final List<String> FRAME_TYPES = Collections.unmodifiableList(Arrays.asList("Opcodes.TOP", "Opcodes.INTEGER",
-			"Opcodes.FLOAT", "Opcodes.DOUBLE", "Opcodes.LONG", "Opcodes.NULL", "Opcodes.UNINITIALIZED_THIS"));
+	private static final List<String> FRAME_TYPES = Collections.unmodifiableList(Arrays.asList("Opcodes.TOP", "Opcodes.INTEGER", "Opcodes.FLOAT", "Opcodes.DOUBLE", "Opcodes.LONG", "Opcodes.NULL", "Opcodes.UNINITIALIZED_THIS"));
 
 	@SuppressWarnings("unused")
 	private static final Map<Integer, String> CLASS_VERSIONS;
@@ -190,8 +188,7 @@ public class TinyASMifier extends Printer {
 	// -----------------------------------------------------------------------------------------------
 
 	@Override
-	public void visit(final int version, final int access, final String name, final String signature, final String superName,
-			final String[] interfaces) {
+	public void visit(final int version, final int access, final String name, final String signature, final String superName, final String[] interfaces) {
 		tiny_visit(access, name, signature, superName, interfaces);
 		text.add(stringBuilder.toString());
 	}
@@ -252,8 +249,7 @@ public class TinyASMifier extends Printer {
 	}
 
 	@Override
-	public TinyASMifier visitClassTypeAnnotation(final int typeRef, final TypePath typePath, final String descriptor,
-			final boolean visible) {
+	public TinyASMifier visitClassTypeAnnotation(final int typeRef, final TypePath typePath, final String descriptor, final boolean visible) {
 		return visitTypeAnnotation(typeRef, typePath, descriptor, visible);
 	}
 
@@ -317,15 +313,13 @@ public class TinyASMifier extends Printer {
 	}
 
 	@Override
-	public TinyASMifier visitField(final int access, final String name, final String descriptor, final String signature,
-			final Object value) {
+	public TinyASMifier visitField(final int access, final String name, final String descriptor, final String signature, final Object value) {
 		TinyASMifier asmifier = tiny_visitField(access, name, descriptor, signature);
 		return asmifier;
 	}
 
 	@Override
-	public Printer visitMethod(final int access, final String name, final String descriptor, final String signature,
-			final String[] exceptions) {
+	public Printer visitMethod(final int access, final String name, final String descriptor, final String signature, final String[] exceptions) {
 
 		this.tiny_methodSignatureParamClazzList = null;
 		this.tiny_methodSignatureTypeParameterClassList = null;
@@ -528,8 +522,7 @@ public class TinyASMifier extends Printer {
 	}
 
 	@Override
-	public TinyASMifier visitRecordComponentTypeAnnotation(final int typeRef, final TypePath typePath, final String descriptor,
-			final boolean visible) {
+	public TinyASMifier visitRecordComponentTypeAnnotation(final int typeRef, final TypePath typePath, final String descriptor, final boolean visible) {
 		return visitTypeAnnotation(typeRef, typePath, descriptor, visible);
 	}
 
@@ -555,8 +548,7 @@ public class TinyASMifier extends Printer {
 	}
 
 	@Override
-	public TinyASMifier visitFieldTypeAnnotation(final int typeRef, final TypePath typePath, final String descriptor,
-			final boolean visible) {
+	public TinyASMifier visitFieldTypeAnnotation(final int typeRef, final TypePath typePath, final String descriptor, final boolean visible) {
 		return visitTypeAnnotation(typeRef, typePath, descriptor, visible);
 	}
 
@@ -602,16 +594,14 @@ public class TinyASMifier extends Printer {
 	}
 
 	@Override
-	public TinyASMifier visitMethodTypeAnnotation(final int typeRef, final TypePath typePath, final String descriptor,
-			final boolean visible) {
+	public TinyASMifier visitMethodTypeAnnotation(final int typeRef, final TypePath typePath, final String descriptor, final boolean visible) {
 		return visitTypeAnnotation(typeRef, typePath, descriptor, visible);
 	}
 
 	@Override
 	public TinyASMifier visitAnnotableParameterCount(final int parameterCount, final boolean visible) {
 		stringBuilder.setLength(0);
-		stringBuilder.append(visitname).append(".visitAnnotableParameterCount(").append(parameterCount).append(", ").append(visible)
-				.append(");\n");
+		stringBuilder.append(visitname).append(".visitAnnotableParameterCount(").append(parameterCount).append(", ").append(visible).append(");\n");
 		text.add(stringBuilder.toString());
 		return this;
 	}
@@ -619,8 +609,7 @@ public class TinyASMifier extends Printer {
 	@Override
 	public TinyASMifier visitParameterAnnotation(final int parameter, final String descriptor, final boolean visible) {
 		stringBuilder.setLength(0);
-		stringBuilder.append("{\n").append(ANNOTATION_VISITOR0).append(visitname).append(".visitParameterAnnotation(").append(parameter)
-				.append(", ");
+		stringBuilder.append("{\n").append(ANNOTATION_VISITOR0).append(visitname).append(".visitParameterAnnotation(").append(parameter).append(", ");
 		appendConstant(descriptor);
 		stringBuilder.append(", ").append(visible).append(");\n");
 		text.add(stringBuilder.toString());
@@ -724,8 +713,7 @@ public class TinyASMifier extends Printer {
 	}
 
 	@Override
-	public void visitMethodInsn(final int opcode, final String owner, final String name, final String descriptor,
-			final boolean isInterface) {
+	public void visitMethodInsn(final int opcode, final String owner, final String name, final String descriptor, final boolean isInterface) {
 		if (api < Opcodes.ASM5) {
 			super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
 			return;
@@ -733,14 +721,12 @@ public class TinyASMifier extends Printer {
 		doVisitMethodInsn(opcode, owner, name, descriptor, isInterface);
 	}
 
-	private void doVisitMethodInsn(final int opcode, final String owner, final String name, final String descriptor,
-			final boolean isInterface) {
+	private void doVisitMethodInsn(final int opcode, final String owner, final String name, final String descriptor, final boolean isInterface) {
 		tiny_doVisitMethodInsn(opcode, owner, name, descriptor);
 	}
 
 	@Override
-	public void visitInvokeDynamicInsn(final String name, final String descriptor, final Handle bootstrapMethodHandle,
-			final Object... bootstrapMethodArguments) {
+	public void visitInvokeDynamicInsn(final String name, final String descriptor, final Handle bootstrapMethodHandle, final Object... bootstrapMethodArguments) {
 		stringBuilder.setLength(0);
 		stringBuilder.append(this.visitname).append(".visitInvokeDynamicInsn(");
 		appendConstant(name);
@@ -880,14 +866,12 @@ public class TinyASMifier extends Printer {
 	}
 
 	@Override
-	public TinyASMifier visitTryCatchAnnotation(final int typeRef, final TypePath typePath, final String descriptor,
-			final boolean visible) {
+	public TinyASMifier visitTryCatchAnnotation(final int typeRef, final TypePath typePath, final String descriptor, final boolean visible) {
 		return visitTypeAnnotation("visitTryCatchAnnotation", typeRef, typePath, descriptor, visible);
 	}
 
 	@Override
-	public void visitLocalVariable(final String name, final String descriptor, final String signature, final Label start, final Label end,
-			final int index) {
+	public void visitLocalVariable(final String name, final String descriptor, final String signature, final Label start, final Label end, final int index) {
 		if (index < tiny_methodLocals.size()) {
 			TinyLocalsStack.Var var = tiny_methodLocals.getByLocal(index);
 			var.name = name;
@@ -904,8 +888,7 @@ public class TinyASMifier extends Printer {
 	}
 
 	@Override
-	public Printer visitLocalVariableAnnotation(final int typeRef, final TypePath typePath, final Label[] start, final Label[] end,
-			final int[] index, final String descriptor, final boolean visible) {
+	public Printer visitLocalVariableAnnotation(final int typeRef, final TypePath typePath, final Label[] start, final Label[] end, final int[] index, final String descriptor, final boolean visible) {
 		stringBuilder.setLength(0);
 		stringBuilder.append("{\n").append(ANNOTATION_VISITOR0).append(visitname).append(".visitLocalVariableAnnotation(").append(typeRef);
 		if (typePath == null) {
@@ -1018,8 +1001,7 @@ public class TinyASMifier extends Printer {
 	 * @param visible    {@literal true} if the annotation is visible at runtime.
 	 * @return a new {@link TinyASMifier} to visit the annotation values.
 	 */
-	public TinyASMifier visitTypeAnnotation(final String method, final int typeRef, final TypePath typePath, final String descriptor,
-			final boolean visible) {
+	public TinyASMifier visitTypeAnnotation(final String method, final int typeRef, final TypePath typePath, final String descriptor, final boolean visible) {
 		stringBuilder.setLength(0);
 		stringBuilder.append("{\n").append(ANNOTATION_VISITOR0).append(visitname).append(".").append(method).append("(").append(typeRef);
 		if (typePath == null) {
@@ -1602,18 +1584,19 @@ public class TinyASMifier extends Printer {
 		text.add(stringBuilder.toString());
 	}
 
-	private String nameWithParameter(String name, Type[] methodParamTypes2) {
+	private String nameWithParameter(String name, Type[] methodParamTypes2, Type returnType) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(name);
 		for (Type type : methodParamTypes2) {
 			sb.append("_");
 			sb.append(type.getClassName().replace("java.lang", "").replaceAll("[.]", "").replaceAll("\\[\\]", "_array_"));
 		}
+		sb.append("_");
+		sb.append(returnType.getClassName().replace("java.lang", "").replaceAll("[.]", "").replaceAll("\\[\\]", "_array_"));
 		return sb.toString();
 	}
 
-	protected void tiny_visit(final int access, final String name, final String signature, final String superName,
-			final String[] interfaces) {
+	protected void tiny_visit(final int access, final String name, final String signature, final String superName, final String[] interfaces) {
 		String simpleName;
 		this.tiny_className = name;
 		if (name == null) {
@@ -1768,7 +1751,7 @@ public class TinyASMifier extends Printer {
 				stringBuilder.append("\t\tclassBody.protected_().field(");
 			} else if (access == 0) {
 				stringBuilder.append("\t\tclassBody.field(");
-			}else {
+			} else {
 				stringBuilder.append("\t\tclassBody.field(");
 				appendAccessFlags(access);
 				stringBuilder.append(", ");
@@ -1838,8 +1821,7 @@ public class TinyASMifier extends Printer {
 		return asmifier;
 	}
 
-	protected void tiny_visitMethod(final int access, final String name, final String descriptor, final String signature,
-			final String[] exceptions) {
+	protected void tiny_visitMethod(final int access, final String name, final String descriptor, final String signature, final String[] exceptions) {
 		tiny_methodLocals = new TinyLocalsStack();
 
 		Type returnType = Type.getReturnType(descriptor);
@@ -1850,8 +1832,7 @@ public class TinyASMifier extends Printer {
 			codeMethodName = "_bridge" + codeMethodName;
 		}
 
-		codeMethodName = !tiny_methodNames.containsKey(codeMethodName) ? codeMethodName
-				: nameWithParameter(codeMethodName, tiny_methodParamTypes);
+		codeMethodName = !tiny_methodNames.containsKey(codeMethodName) ? codeMethodName : nameWithParameter(codeMethodName, tiny_methodParamTypes, returnType);
 		tiny_methodNames.put(codeMethodName, codeMethodName);
 		// Call method
 		stringBuilder.setLength(0);
@@ -1861,8 +1842,7 @@ public class TinyASMifier extends Printer {
 		text.add(stringBuilder.toString());
 
 		stringBuilder.setLength(0);
-		logger.trace("visitMethod(final int access, final String {}, final String {}, final String {}, final String[] exceptions)", name,
-				descriptor, signature);
+		logger.trace("visitMethod(final int access, final String {}, final String {}, final String {}, final String[] exceptions)", name, descriptor, signature);
 		if ((access & ACC_STATIC) > 0) {
 			tiny_methodIsStatic = true;
 			tiny_methodVisitParameter = 0;
@@ -2134,8 +2114,7 @@ public class TinyASMifier extends Printer {
 			}
 			break;
 		default:
-			stringBuilder.append(visitname).append(".visitIntInsn(").append(OPCODES[opcode]).append(", ")
-					.append(opcode == Opcodes.NEWARRAY ? TYPES[operand] : Integer.toString(operand)).append(");\n");
+			stringBuilder.append(visitname).append(".visitIntInsn(").append(OPCODES[opcode]).append(", ").append(opcode == Opcodes.NEWARRAY ? TYPES[operand] : Integer.toString(operand)).append(");\n");
 		}
 		text.add(stringBuilder.toString());
 	}
@@ -2753,8 +2732,7 @@ public class TinyASMifier extends Printer {
 
 		@Override
 		public String toString() {
-			return var.getSignature() != null ? ("," + var.getSignature())
-					: var.type != null ? ("," + clazzOf(var.type, tiny_referedTypes)) : "";
+			return var.getSignature() != null ? ("," + var.getSignature()) : var.type != null ? ("," + clazzOf(var.type, tiny_referedTypes)) : "";
 		}
 	}
 

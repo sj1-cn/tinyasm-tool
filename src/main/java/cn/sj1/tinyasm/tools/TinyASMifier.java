@@ -106,8 +106,6 @@ public class TinyASMifier extends Printer {
 		classVersions.put(Opcodes.V13, "V13");
 		classVersions.put(Opcodes.V14, "V14");
 		classVersions.put(Opcodes.V15, "V15");
-		classVersions.put(Opcodes.V16, "V16");
-		classVersions.put(Opcodes.V17, "V17");
 		CLASS_VERSIONS = Collections.unmodifiableMap(classVersions);
 	}
 
@@ -128,7 +126,7 @@ public class TinyASMifier extends Printer {
 	 * @throws IllegalStateException If a subclass calls this constructor.
 	 */
 	public TinyASMifier() {
-		this(/* latest api = */ Opcodes.ASM9, "classBody", 0);
+		this(/* latest api = */ Opcodes.ASM8, "classBody", 0);
 		if (getClass() != TinyASMifier.class) {
 			throw new IllegalStateException();
 		}
@@ -139,9 +137,9 @@ public class TinyASMifier extends Printer {
 	 *
 	 * @param api                 the ASM API version implemented by this class.
 	 *                            Must be one of {@link Opcodes#ASM4},
-	 *                            {@link Opcodes#ASM5}, {@link Opcodes#ASM6},
+	 *                            {@link Opcodes#ASM8}, {@link Opcodes#ASM6},
 	 *                            {@link Opcodes#ASM7}, {@link Opcodes#ASM8} or
-	 *                            {@link Opcodes#ASM9}.
+	 *                            {@link Opcodes#ASM8}.
 	 * @param visitorVariableName the name of the visitor variable in the produced
 	 *                            code.
 	 * @param annotationVisitorId identifier of the annotation visitor variable in
@@ -268,14 +266,14 @@ public class TinyASMifier extends Printer {
 		text.add(stringBuilder.toString());
 	}
 
-	@Override
-	public void visitPermittedSubclass(final String permittedSubclass) {
-		stringBuilder.setLength(0);
-		stringBuilder.append("classBody.visitPermittedSubclass(");
-		appendConstant(permittedSubclass);
-		stringBuilder.append(END_PARAMETERS);
-		text.add(stringBuilder.toString());
-	}
+//	@Override
+//	public void visitPermittedSubclass(final String permittedSubclass) {
+//		stringBuilder.setLength(0);
+//		stringBuilder.append("classBody.visitPermittedSubclass(");
+//		appendConstant(permittedSubclass);
+//		stringBuilder.append(END_PARAMETERS);
+//		text.add(stringBuilder.toString());
+//	}
 
 	@Override
 	public void visitInnerClass(final String name, final String outerName, final String innerName, final int access) {
@@ -706,7 +704,7 @@ public class TinyASMifier extends Printer {
 	@Deprecated
 	@Override
 	public void visitMethodInsn(final int opcode, final String owner, final String name, final String descriptor) {
-		if (api >= Opcodes.ASM5) {
+		if (api >= Opcodes.ASM8) {
 			super.visitMethodInsn(opcode, owner, name, descriptor);
 			return;
 		}
@@ -715,7 +713,7 @@ public class TinyASMifier extends Printer {
 
 	@Override
 	public void visitMethodInsn(final int opcode, final String owner, final String name, final String descriptor, final boolean isInterface) {
-		if (api < Opcodes.ASM5) {
+		if (api < Opcodes.ASM8) {
 			super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
 			return;
 		}

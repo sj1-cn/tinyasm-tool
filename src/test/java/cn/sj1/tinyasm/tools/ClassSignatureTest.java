@@ -27,7 +27,7 @@ public class ClassSignatureTest {
 		Map<String, String> tiny_referedTypes = new HashMap<String, String>();
 
 		SignatureReader sr = new SignatureReader(signature);
-		ClassSignature signatureVistor = new ClassSignature(Opcodes.ASM9, tiny_referedTypes);
+		ClassSignature signatureVistor = new ClassSignature(Opcodes.ASM8, tiny_referedTypes);
 		sr.accept(signatureVistor);
 //		logger.trace("visitLocalVariable({} {}", name, signatureVistor.superClass);
 		assertEquals("Clazz.of(Class.class, Clazz.typeUnboundedTypeArgument())", signatureVistor.superClass.toString());
@@ -39,7 +39,7 @@ public class ClassSignatureTest {
 		Map<String, String> tiny_referedTypes = new HashMap<String, String>();
 
 		SignatureReader sr = new SignatureReader(signature);
-		ClassSignature signatureVistor = new ClassSignature(Opcodes.ASM9, tiny_referedTypes);
+		ClassSignature signatureVistor = new ClassSignature(Opcodes.ASM8, tiny_referedTypes);
 		sr.accept(signatureVistor);
 //		logger.trace("visitLocalVariable({} {}", name, signatureVistor.superClass);
 		assertEquals("Clazz.of(Class.class,Clazz.typeArgument(Clazz.typeVariableOf(\"T\")))", signatureVistor.superClass.toString());
@@ -54,7 +54,7 @@ public class ClassSignatureTest {
 		Map<String, String> tiny_referedTypes = new HashMap<String, String>();
 
 		SignatureReader sr = new SignatureReader(signature);
-		ClassSignature signatureVistor = new ClassSignature(Opcodes.ASM9, tiny_referedTypes);
+		ClassSignature signatureVistor = new ClassSignature(Opcodes.ASM8, tiny_referedTypes);
 		sr.accept(signatureVistor);
 //		logger.trace("visitLocalVariable({} {}", name, signatureVistor.superClass);
 		assertEquals("[\"T\",Clazz.of(Object.class)]", signatureVistor.typeParameterClassList.toString());
@@ -70,7 +70,7 @@ public class ClassSignatureTest {
 		Map<String, String> tiny_referedTypes = new HashMap<String, String>();
 
 		SignatureReader sr = new SignatureReader(signature);
-		ClassSignature signatureVistor = new ClassSignature(Opcodes.ASM9, tiny_referedTypes);
+		ClassSignature signatureVistor = new ClassSignature(Opcodes.ASM8, tiny_referedTypes);
 		sr.accept(signatureVistor);
 //		logger.trace("visitLocalVariable({} {}", name, signatureVistor.superClass);
 		assertEquals("[]", signatureVistor.typeParameterClassList.toString());
@@ -87,7 +87,7 @@ public class ClassSignatureTest {
 		Map<String, String> tiny_referedTypes = new HashMap<String, String>();
 
 		SignatureReader sr = new SignatureReader(signature);
-		ClassSignature signatureVistor = new ClassSignature(Opcodes.ASM9, tiny_referedTypes);
+		ClassSignature signatureVistor = new ClassSignature(Opcodes.ASM8, tiny_referedTypes);
 		sr.accept(signatureVistor);
 //		logger.trace("visitLocalVariable({} {}", name, signatureVistor.superClass);
 		assertEquals("Clazz.of(boolean.class)", signatureVistor.returnClass.toString());
@@ -114,7 +114,7 @@ public class ClassSignatureTest {
 		Map<String, String> tiny_referedTypes = new HashMap<String, String>();
 
 		SignatureReader sr = new SignatureReader(signature);
-		ClassSignature signatureVistor = new ClassSignature(Opcodes.ASM9, tiny_referedTypes);
+		ClassSignature signatureVistor = new ClassSignature(Opcodes.ASM8, tiny_referedTypes);
 		sr.accept(signatureVistor);
 //		logger.trace("visitLocalVariable({} {}", name, signatureVistor.superClass);
 		assertEquals("Clazz.of(void.class)", signatureVistor.returnClass.toString());

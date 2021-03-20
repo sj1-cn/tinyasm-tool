@@ -66,6 +66,10 @@ public class RefineCode {
 		input = input.replaceAll("methodVisitor.visitFrame[^\\n]*;\\n", "");
 		input = input.replaceAll(visit("methodVisitor.visitMaxs", TYPE.INT, TYPE.INT), "methodVisitor.visitMaxs(1, 1);");
 	
+
+		input = input.replaceAll("methodVisitor.visitTypeInsn\\(CHECKCAST, \"\\[Ljava/lang/Object;\"\\);\\nmethodVisitor.visitTypeInsn\\(CHECKCAST, \"\\[Ljava/lang/Object;\"\\);\\n", "methodVisitor.visitTypeInsn(CHECKCAST, \"[Ljava/lang/Object;\");\n");
+//		methodVisitor.visitTypeInsn(CHECKCAST, "[Ljava/lang/Object;");
+//		methodVisitor.visitTypeInsn(CHECKCAST, "[Ljava/lang/Object;");
 //		input = input.replaceAll(
 //				visit("methodVisitor.visitLocalVariable", TYPE.STRING, TYPE.STRING, TYPE.STRING, TYPE.NAME, TYPE.NAME, TYPE.NAME),
 //				""//"methodVisitor.visitLocalVariable(local,$2,$3,l0,l1,$6);\n"

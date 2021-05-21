@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>cn.sj1</groupId>
 	<artifactId>tinyasm-tool</artifactId>
-	<version>0.3.6</version>
+	<version>${tinyasm.version}</version>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.scm.id>bitbucket</project.scm.id>
@@ -27,6 +27,7 @@
 		<slf4j.version>1.7.25</slf4j.version>
 		<log4j.version>2.14.0</log4j.version>
 		<junit.version>4.13.1</junit.version>
+		<tinyasm.version>0.3.6.1</tinyasm.version>
 	</properties>
 	<name>tinyasm-tool</name>
 	<description>tinyasm-tool</description>
@@ -36,7 +37,7 @@
 		<connection>scm:git:https://github.com/sj1-cn/tinyasm-core.git</connection>
 		<developerConnection>scm:git:ssh://git@github.com:sj1-cn/tinyasm-core.git</developerConnection>
 		<url>https://github.com/sj1-cn/tinyasm-core/tree/master/src</url>
-		<tag>0.3.6</tag>
+		<tag>${tinyasm.version}</tag>
 	</scm>
 	<licenses>
 		<license>

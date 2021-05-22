@@ -27,7 +27,7 @@
 		<slf4j.version>1.7.25</slf4j.version>
 		<log4j.version>2.14.0</log4j.version>
 		<junit.version>4.13.1</junit.version>
-		<tinyasm.version>0.3.6.1</tinyasm.version>
+		<tinyasm.version>0.3.6.2</tinyasm.version>
 	</properties>
 	<name>tinyasm-tool</name>
 	<description>tinyasm-tool</description>

@@ -1756,7 +1756,7 @@ public class TinyASMifier extends Printer {
 			// appendConstant(name.replace('/', '.'));
 			stringBuilder.append(", ");
 			SignatureReader sr = new SignatureReader(signature);
-			ClassSignature signatureVistor = new ClassSignature(super.api, tiny_referedTypes);
+			ClassSignature signatureVistor = new ClassSignature(super.api,this.classDefinedClassParameters, tiny_referedTypes);
 			sr.accept(signatureVistor);
 			stringBuilder.append(signatureVistor.superClass.toString());
 			for (StringBuilder string : signatureVistor.interfacesClassList) {

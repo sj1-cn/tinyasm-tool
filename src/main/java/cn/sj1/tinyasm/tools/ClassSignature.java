@@ -29,9 +29,17 @@ final class ClassSignature extends SignatureVisitor {
 	List<StringBuilder> interfacesClassList = new ArrayList<>();
 	List<StringBuilder> typeParameterClassList = new ArrayList<>();;
 
-	ClassSignature(int api, Map<String, String> referedTypes) {
+	ClassSignature(int api, Map<String, String> tiny_referedTypes) {
 		super(api);
-		this.referedTypes = referedTypes;
+		this.referedTypes = tiny_referedTypes;
+	}
+
+	Map<String, String> classParameters;
+
+	ClassSignature(int api, Map<String, String> classParameters, Map<String, String> tiny_referedTypes) {
+		super(api);
+		this.referedTypes = tiny_referedTypes;
+		this.classParameters = classParameters;
 	}
 
 	String header = "root";
@@ -109,14 +117,26 @@ final class ClassSignature extends SignatureVisitor {
 	@Override
 	public void visitBaseType(char descriptor) {
 		logger.trace("{}visitBaseType({})", indent(), descriptor);
-		sb.append("Clazz.of(");
 		Type type = Type.getType(String.valueOf(descriptor));
-		sb.append(type.getClassName());
-		if (array) {
+		String className = type.getClassName();
+
+
+		if (!array) {
+//				referedTypes.put(className, "");
+			
+			sb.append("Clazz.of(");
+			sb.append(toSimpleName(className));
+			sb.append(".class");
+			sb.append(")");
+		} else {
+//				referedTypes.put(className, "");
+
+			sb.append("Clazz.of(");
+			sb.append(toSimpleName(className));
 			sb.append("[]");
+			sb.append(".class");
+			sb.append(")");
 		}
-		sb.append(".class");
-		sb.append(')');
 	}
 
 	@Override
@@ -175,21 +195,55 @@ final class ClassSignature extends SignatureVisitor {
 				sb.append(",");
 			}
 			String className = name.replace('/', '.');
-			referedTypes.put(name.replace('/', '.'), "");
-			sb.append(toSimpleName(className));
-			if (array) {
-				sb.append("[]");
+
+			if (classParameters != null && classParameters.containsKey(className)) {
+				if (!array) {
+					sb.append(classParameters.get(className));
+				} else {
+					sb.append("Clazz.of(");
+					sb.append(classParameters.get(className));
+					sb.append(",true");
+					sb.append(")");
+				}
+			} else {
+				if (!array) {
+					referedTypes.put(className, "");
+
+					sb.append(toSimpleName(className));
+					sb.append(".class");
+				} else {
+					referedTypes.put(className, "");
+
+					sb.append("Clazz.of(");
+					sb.append(toSimpleName(className));
+					sb.append("[]");
+					sb.append(".class");
+					sb.append(")");
+				}
 			}
-			sb.append(".class");
 		} else {
-			sb.append("Clazz.of(");
 			String className = name.replace('/', '.');
-			referedTypes.put(name.replace('/', '.'), "");
-			sb.append(toSimpleName(className));
-			if (array) {
-				sb.append("[]");
+			sb.append("Clazz.of(");
+
+			if (classParameters != null && classParameters.containsKey(className)) {
+				if (!array) {
+					sb.append(classParameters.get(className));
+				} else {
+					sb.append(classParameters.get(className));
+					sb.append(",true");
+				}
+			} else {
+				referedTypes.put(className, "");
+				if (!array) {
+					sb.append(toSimpleName(className));
+					sb.append(".class");
+				} else {
+
+					sb.append(toSimpleName(className));
+					sb.append("[]");
+					sb.append(".class");
+				}
 			}
-			sb.append(".class");
 		}
 		typeArgument = DEFAULT_TypeArgument;
 	}

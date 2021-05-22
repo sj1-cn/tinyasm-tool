@@ -35,6 +35,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.objectweb.asm.Attribute;
 import org.objectweb.asm.ConstantDynamic;
@@ -127,6 +128,17 @@ public class TinyASMifier extends Printer {
 	 */
 	public TinyASMifier() {
 		this(/* latest api = */ Opcodes.ASM8, "classBody", 0);
+		this.classDefinedClassParameters = new HashMap<>();
+		if (getClass() != TinyASMifier.class) {
+			throw new IllegalStateException();
+		}
+	}
+
+	private Map<String, String> classDefinedClassParameters;
+
+	public TinyASMifier(Map<String, String> parameters) {
+		this(/* latest api = */ Opcodes.ASM8, "classBody", 0);
+		this.classDefinedClassParameters = parameters;
 		if (getClass() != TinyASMifier.class) {
 			throw new IllegalStateException();
 		}
@@ -281,7 +293,7 @@ public class TinyASMifier extends Printer {
 //		classWriter.visitInnerClass("java/lang/invoke/MethodHandles$Lookup", "java/lang/invoke/MethodHandles", "Lookup", ACC_PUBLIC | ACC_FINAL | ACC_STATIC);
 
 		stringBuilder.setLength(0);
-		stringBuilder.append("classBody.referInnerClass(");
+		stringBuilder.append("\t\tclassBody.referInnerClass(");
 		appendAccessFlags(access | ACCESS_INNER);
 		stringBuilder.append(", ");
 //		appendConstant(name);
@@ -324,6 +336,8 @@ public class TinyASMifier extends Printer {
 		this.tiny_methodSignatureTypeParameterClassList = null;
 		this.tiny_methodSignatureReturnClass = null;
 
+		this.methodUsedClassParameters= new HashMap<>();
+
 		tiny_visitMethod(access, name, descriptor, signature, exceptions);
 
 		TinyASMifier asmifier = createASMifier("code", 0);
@@ -336,6 +350,8 @@ public class TinyASMifier extends Printer {
 		asmifier.tiny_className = this.tiny_className;
 		asmifier.tiny_annotation = new Annotation();
 		asmifier.tiny_referedTypes = this.tiny_referedTypes;
+		asmifier.classDefinedClassParameters = this.classDefinedClassParameters;
+		asmifier.methodUsedClassParameters = methodUsedClassParameters;
 		tiny_textMethods.add(asmifier.getText());
 		tiny_textMethods.add("\n\t\tcode.END();\n\t}\n\n");
 		return asmifier;
@@ -1494,7 +1510,15 @@ public class TinyASMifier extends Printer {
 		return clazzOf(Type.getType(descriptor), tiny_referedTypes);
 	}
 
-	public static String clazzOf(Type type, Map<String, String> referedTypes) {
+	private Map<String, String> methodUsedClassParameters = new HashMap<>();
+
+	public String clazzOf(Type type, Map<String, String> referedTypes) {
+		logger.trace("clazzOf - {} ", type.getClassName());
+		if (this.classDefinedClassParameters != null && this.classDefinedClassParameters.containsKey(type.getClassName())) {
+			logger.trace("clazzOf - {} is in paramter {}", type.getClassName(), this.classDefinedClassParameters.get(type.getClassName()));
+			methodUsedClassParameters.put(type.getClassName(), this.classDefinedClassParameters.get(type.getClassName()));
+			return this.classDefinedClassParameters.get(type.getClassName());
+		}
 		logger.trace("clazzOf({})", type);
 		if (tiny_primativeTypeMaps.containsKey(type.getInternalName())) {
 			return tiny_primativeTypeMaps.get(type.getInternalName());
@@ -1646,10 +1670,39 @@ public class TinyASMifier extends Printer {
 		String className = simpleName + "TinyAsmDump";
 
 		text.add("public class " + className + " {\n\n");
-		text.add("\tpublic static byte[] dump () throws Exception {\n");
-		text.add("\t\treturn new " + className + "().dump(\"" + name.replace('/', '.') + "\");\n");
-		text.add("\t}\n\n");
-		text.add("\tpublic byte[] dump(String className) throws Exception {\n");
+
+		{
+			List<String> params = new ArrayList<>();
+
+			params.add("\"" + name.replace('/', '.') + "\"");
+			for (Entry<String, String> entry : this.classDefinedClassParameters.entrySet()) {
+				params.add(entry.getKey() + ".class");
+			}
+
+
+			text.add("\tpublic static byte[] dump() throws Exception {\n");
+			text.add("\t\treturn new " + className + "().build(" + String.join(",", params) + ");\n");
+			text.add("\t}\n\n");
+		}
+
+		{
+			List<String> paramDefines = new ArrayList<>();
+			List<String> params = new ArrayList<>();
+			paramDefines.add("String className");
+			params.add("className");
+			for (Entry<String, String> entry : this.classDefinedClassParameters.entrySet()) {
+				paramDefines.add("Class<?> " + entry.getValue());
+				params.add(entry.getValue());
+			}
+
+//
+//			text.add("\tpublic static byte[] build (" + String.join(",", paramDefines) + ") throws Exception {\n");
+//			text.add("\t\treturn new " + className + "().dodump(" + String.join(",", params) + ");\n");
+//			text.add("\t}\n\n");
+			
+			text.add("\tpublic byte[] build(" + String.join(",", paramDefines) + ") throws Exception {\n");
+		}
+		
 		// text.add(" ClassBody classBody =
 		// ClassBuilder.make(className).access(ACC_PUBLIC | ACC_SUPER).body();");
 
@@ -1837,7 +1890,13 @@ public class TinyASMifier extends Printer {
 		stringBuilder.setLength(0);
 		stringBuilder.append("\t\t");
 		stringBuilder.append(codeMethodName);
-		stringBuilder.append("(classBody);\n");
+		stringBuilder.append("(classBody");
+		text.add(stringBuilder.toString());
+
+		text.add(new ParamterClassesInvokeHolder(methodUsedClassParameters));
+
+		stringBuilder.setLength(0);
+		stringBuilder.append(");\n");
 		text.add(stringBuilder.toString());
 
 		stringBuilder.setLength(0);
@@ -1855,7 +1914,14 @@ public class TinyASMifier extends Printer {
 
 		stringBuilder.append("\tprotected void ");
 		stringBuilder.append(codeMethodName);
-		stringBuilder.append("(ClassBody classBody) {\n");
+		stringBuilder.append("(ClassBody classBody");
+		tiny_textMethods.add(stringBuilder.toString());
+
+		tiny_textMethods.add(new ParamterClassesHolder(methodUsedClassParameters));
+
+		stringBuilder.setLength(0);
+		stringBuilder.append(") {\n");
+
 		// stringBuilder.append("{\n");
 		if (!tiny_methodIsStatic) {
 			if (access == ACC_PUBLIC) {
@@ -2675,6 +2741,46 @@ public class TinyASMifier extends Printer {
 	 * 
 	 * ================================================================================================================
 	 */
+
+	class ParamterClassesHolder {
+		Map<String, String> params;
+
+		public ParamterClassesHolder(Map<String, String> params) {
+			super();
+			this.params = params;
+		}
+
+		@Override
+		public String toString() {
+			StringBuilder sb = new StringBuilder();
+			for (Entry<String, String> entry : params.entrySet()) {
+				sb.append(",Class<?> ");
+				sb.append(entry.getValue());
+
+			}
+			return sb.toString();
+		}
+	}
+
+	class ParamterClassesInvokeHolder {
+		Map<String, String> params;
+
+		public ParamterClassesInvokeHolder(Map<String, String> params) {
+			super();
+			this.params = params;
+		}
+
+		@Override
+		public String toString() {
+			StringBuilder sb = new StringBuilder();
+			for (Entry<String, String> entry : params.entrySet()) {
+				sb.append(",");
+				sb.append(entry.getValue());
+
+			}
+			return sb.toString();
+		}
+	}
 
 	class LabelHolder {
 		Label label;

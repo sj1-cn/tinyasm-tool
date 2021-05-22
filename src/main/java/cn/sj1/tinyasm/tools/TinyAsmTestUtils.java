@@ -13,6 +13,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import javax.tools.JavaCompiler;
 import javax.tools.JavaFileObject;
@@ -32,6 +33,23 @@ public class TinyAsmTestUtils {
 			StringWriter sw = new StringWriter();
 			PrintWriter pw = new PrintWriter(sw);
 			ClassVisitor visitor = new TraceClassVisitor(null, new TinyASMifier(), pw);
+			cr.accept(visitor, ClassReader.EXPAND_FRAMES);
+
+			String strCode = sw.toString();
+			writeCodeToFile(clazz, strCode);
+			return skipToString(excludeLineNumber(strCode));
+
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public static String tinyasmToString(Class<?> clazz, Map<String, String> parameters) {
+		try {
+			ClassReader cr = new ClassReader(clazz.getName());
+			StringWriter sw = new StringWriter();
+			PrintWriter pw = new PrintWriter(sw);
+			ClassVisitor visitor = new TraceClassVisitor(null, new TinyASMifier(parameters), pw);
 			cr.accept(visitor, ClassReader.EXPAND_FRAMES);
 
 			String strCode = sw.toString();
@@ -177,6 +195,26 @@ public class TinyAsmTestUtils {
 		try {
 			String expectClazzName = expectedClazz.getName();
 			String tingasmCreatedDumpCode = TinyAsmTestUtils.tinyasmToString(expectedClazz);
+
+			String dumpClazz = expectClazzName + "TinyAsmDump";
+
+			writeToFile(tingasmCreatedDumpCode, new File("src/test/java", dumpClazz.replace('.', '/') + ".java"));
+
+			complie2Class(new File("src/test/java", dumpClazz.replace('.', '/') + ".java"));
+			Class<?> clazz = loadClass(new File("src/test/java", dumpClazz.replace('.', '/') + ".java"), dumpClazz);
+			byte[] code = (byte[]) clazz.getMethod("dump").invoke(null);
+			return code;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+	}
+
+	public static byte[] dumpTinyAsm(Class<?> expectedClazz, Map<String, String> parameters) {
+
+		try {
+			String expectClazzName = expectedClazz.getName();
+			String tingasmCreatedDumpCode = TinyAsmTestUtils.tinyasmToString(expectedClazz, parameters);
 
 			String dumpClazz = expectClazzName + "TinyAsmDump";
 

@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>cn.sj1</groupId>
 	<artifactId>tinyasm-tool</artifactId>
-	<version>0.3.6.3</version>
+	<version>0.3.7</version>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.scm.id>bitbucket</project.scm.id>
@@ -27,7 +27,6 @@
 		<slf4j.version>1.7.25</slf4j.version>
 		<log4j.version>2.14.0</log4j.version>
 		<junit.version>4.13.1</junit.version>
-		<tinyasm.version>0.3.6.3</tinyasm.version>
 	</properties>
 	<name>tinyasm-tool</name>
 	<description>tinyasm-tool</description>
@@ -110,6 +109,7 @@
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-log4j12</artifactId>
 			<version>${slf4j.version}</version>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 	<distributionManagement>

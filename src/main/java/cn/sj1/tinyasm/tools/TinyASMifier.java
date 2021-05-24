@@ -135,10 +135,22 @@ public class TinyASMifier extends Printer {
 	}
 
 	private Map<String, String> classDefinedClassParameters;
+	private String[] classDefinedClassParameterNames;
+	private Object[] classDefinedClassParameterClasses;
 
-	public TinyASMifier(Map<String, String> parameters) {
+	public TinyASMifier(String[] names, Object[] classes) {
 		this(/* latest api = */ Opcodes.ASM8, "classBody", 0);
-		this.classDefinedClassParameters = parameters;
+		this.classDefinedClassParameters = new HashMap<>();
+		this.classDefinedClassParameterNames = names;
+		this.classDefinedClassParameterClasses = classes;
+		for (int i = 0; i < classes.length; i++) {
+			if (classes[i] instanceof Class) {
+				this.classDefinedClassParameters.put(((Class<?>) classes[i]).getName(), names[i]);
+			} else if (classes[i] instanceof String) {
+				this.classDefinedClassParameters.put((String) classes[i], names[i]);
+			}
+		}
+//		this.classDefinedClassParameters = parameters;
 		if (getClass() != TinyASMifier.class) {
 			throw new IllegalStateException();
 		}
@@ -336,7 +348,7 @@ public class TinyASMifier extends Printer {
 		this.tiny_methodSignatureTypeParameterClassList = null;
 		this.tiny_methodSignatureReturnClass = null;
 
-		this.methodUsedClassParameters= new HashMap<>();
+		this.methodUsedClassParameters = new HashMap<>();
 
 		tiny_visitMethod(access, name, descriptor, signature, exceptions);
 
@@ -894,7 +906,7 @@ public class TinyASMifier extends Printer {
 				var.type = Type.getType(descriptor);
 			} else {
 				SignatureReader sr = new SignatureReader(signature);
-				ClassSignature signatureVistor = new ClassSignature(super.api, tiny_referedTypes);
+				ClassSignature signatureVistor = new ClassSignature(super.api, this.classDefinedClassParameters, this.methodUsedClassParameters, tiny_referedTypes);
 				sr.accept(signatureVistor);
 				logger.trace("visitLocalVariable({} {}", name, signatureVistor.superClass);
 				var.setSignature(signatureVistor.superClass.toString());
@@ -1675,10 +1687,18 @@ public class TinyASMifier extends Printer {
 			List<String> params = new ArrayList<>();
 
 			params.add("\"" + name.replace('/', '.') + "\"");
-			for (Entry<String, String> entry : this.classDefinedClassParameters.entrySet()) {
-				params.add(entry.getKey() + ".class");
+			if (classDefinedClassParameterClasses != null) {
+				for (int i = 0; i < classDefinedClassParameterClasses.length; i++) {
+					if (classDefinedClassParameterClasses[i] instanceof Class) {
+						params.add(((Class<?>) classDefinedClassParameterClasses[i]).getName() + ".class");
+					} else if (classDefinedClassParameterClasses[i] instanceof String) {
+						params.add("\"" + (String) classDefinedClassParameterClasses[i] + "\"" );
+					}
+				}
 			}
-
+//			for (Entry<String, String> entry : this.classDefinedClassParameters.entrySet()) {
+//				params.add(entry.getKey() + ".class");
+//			}
 
 			text.add("\tpublic static byte[] dump() throws Exception {\n");
 			text.add("\t\treturn new " + className + "().build(" + String.join(",", params) + ");\n");
@@ -1690,19 +1710,29 @@ public class TinyASMifier extends Printer {
 			List<String> params = new ArrayList<>();
 			paramDefines.add("String className");
 			params.add("className");
-			for (Entry<String, String> entry : this.classDefinedClassParameters.entrySet()) {
-				paramDefines.add("Class<?> " + entry.getValue());
-				params.add(entry.getValue());
-			}
 
+			if (classDefinedClassParameterClasses != null) {
+				for (int i = 0; i < classDefinedClassParameterClasses.length; i++) {
+					Object value = classDefinedClassParameterClasses[i];
+					if(value instanceof String) {
+						paramDefines.add("String " + classDefinedClassParameterNames[i]);
+						
+					}else if(value instanceof Class) {
+						paramDefines.add("Class<?> " + classDefinedClassParameterNames[i]);
+						
+					}
+					
+					params.add(classDefinedClassParameterNames[i]);
+				}
+			}
 //
 //			text.add("\tpublic static byte[] build (" + String.join(",", paramDefines) + ") throws Exception {\n");
 //			text.add("\t\treturn new " + className + "().dodump(" + String.join(",", params) + ");\n");
 //			text.add("\t}\n\n");
-			
+
 			text.add("\tpublic byte[] build(" + String.join(",", paramDefines) + ") throws Exception {\n");
 		}
-		
+
 		// text.add(" ClassBody classBody =
 		// ClassBuilder.make(className).access(ACC_PUBLIC | ACC_SUPER).body();");
 
@@ -1756,7 +1786,7 @@ public class TinyASMifier extends Printer {
 			// appendConstant(name.replace('/', '.'));
 			stringBuilder.append(", ");
 			SignatureReader sr = new SignatureReader(signature);
-			ClassSignature signatureVistor = new ClassSignature(super.api,this.classDefinedClassParameters, tiny_referedTypes);
+			ClassSignature signatureVistor = new ClassSignature(super.api, this.classDefinedClassParameters, this.methodUsedClassParameters, tiny_referedTypes);
 			sr.accept(signatureVistor);
 			stringBuilder.append(signatureVistor.superClass.toString());
 			for (StringBuilder string : signatureVistor.interfacesClassList) {
@@ -1855,7 +1885,7 @@ public class TinyASMifier extends Printer {
 		} else {
 			stringBuilder.append(",");
 			SignatureReader sr = new SignatureReader(signature);
-			ClassSignature signatureVistor = new ClassSignature(super.api, tiny_referedTypes);
+			ClassSignature signatureVistor = new ClassSignature(super.api, this.classDefinedClassParameters, this.methodUsedClassParameters, tiny_referedTypes);
 			sr.accept(signatureVistor);
 			stringBuilder.append(signatureVistor.toString());
 		}
@@ -1959,7 +1989,7 @@ public class TinyASMifier extends Printer {
 
 		if (signature != null) {
 			SignatureReader sr = new SignatureReader(signature);
-			ClassSignature signatureVistor = new ClassSignature(super.api, tiny_referedTypes);
+			ClassSignature signatureVistor = new ClassSignature(super.api, this.classDefinedClassParameters, this.methodUsedClassParameters, tiny_referedTypes);
 			sr.accept(signatureVistor);
 			tiny_methodSignatureReturnClass = signatureVistor.returnClass;
 			tiny_methodSignatureParamClazzList = signatureVistor.paramsClassList;
@@ -2754,7 +2784,18 @@ public class TinyASMifier extends Printer {
 		public String toString() {
 			StringBuilder sb = new StringBuilder();
 			for (Entry<String, String> entry : params.entrySet()) {
-				sb.append(",Class<?> ");
+				sb.append(", ");
+				for (int i = 0; i < classDefinedClassParameterNames.length; i++) {
+					if(entry.getValue().equals(classDefinedClassParameterNames[i])) {
+						Object v = classDefinedClassParameterClasses[i];
+						if(v instanceof String) {
+							sb.append("String ");
+						}else if(v instanceof Class) {
+							sb.append("Class<?> ");
+						}
+					}
+				}
+				sb.append(" ");
 				sb.append(entry.getValue());
 
 			}

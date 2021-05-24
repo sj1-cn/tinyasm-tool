@@ -13,7 +13,6 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import javax.tools.JavaCompiler;
 import javax.tools.JavaFileObject;
@@ -44,12 +43,12 @@ public class TinyAsmTestUtils {
 		}
 	}
 
-	public static String tinyasmToString(Class<?> clazz, Map<String, String> parameters) {
+	public static String tinyasmToString(Class<?> clazz, String[] names, Object[] classes) {
 		try {
 			ClassReader cr = new ClassReader(clazz.getName());
 			StringWriter sw = new StringWriter();
 			PrintWriter pw = new PrintWriter(sw);
-			ClassVisitor visitor = new TraceClassVisitor(null, new TinyASMifier(parameters), pw);
+			ClassVisitor visitor = new TraceClassVisitor(null, new TinyASMifier(names, classes), pw);
 			cr.accept(visitor, ClassReader.EXPAND_FRAMES);
 
 			String strCode = sw.toString();
@@ -210,11 +209,23 @@ public class TinyAsmTestUtils {
 		}
 	}
 
-	public static byte[] dumpTinyAsm(Class<?> expectedClazz, Map<String, String> parameters) {
+	public static byte[] dumpTinyAsm(Class<?> expectedClazz, String firstName, Object firstClass, String secondName, Object secondClass) {
+		return dumpTinyAsm(expectedClazz, new String[] { firstName, secondName }, new Object[] { firstClass, secondClass });
+	}
+
+	public static byte[] dumpTinyAsm(Class<?> expectedClazz, String firstName, Object firstClass, String secondName, Object secondClass, String thirdName, Class<?> thirdClass) {
+		return dumpTinyAsm(expectedClazz, new String[] { firstName, secondName, thirdName }, new Object[] { firstClass, secondClass, thirdClass });
+	}
+
+	public static byte[] dumpTinyAsm(Class<?> expectedClazz, String firstName, Object firstClass) {
+		return dumpTinyAsm(expectedClazz, new String[] { firstName }, new Object[] { firstClass });
+	}
+
+	public static byte[] dumpTinyAsm(Class<?> expectedClazz, String[] paramNames, Object[] paramVales) {
 
 		try {
 			String expectClazzName = expectedClazz.getName();
-			String tingasmCreatedDumpCode = TinyAsmTestUtils.tinyasmToString(expectedClazz, parameters);
+			String tingasmCreatedDumpCode = TinyAsmTestUtils.tinyasmToString(expectedClazz, paramNames, paramVales);
 
 			String dumpClazz = expectClazzName + "TinyAsmDump";
 
@@ -222,7 +233,18 @@ public class TinyAsmTestUtils {
 
 			complie2Class(new File("src/test/java", dumpClazz.replace('.', '/') + ".java"));
 			Class<?> clazz = loadClass(new File("src/test/java", dumpClazz.replace('.', '/') + ".java"), dumpClazz);
-			byte[] code = (byte[]) clazz.getMethod("dump").invoke(null);
+			Object instance = clazz.getConstructor().newInstance();
+
+			Object[] params = new Object[paramVales.length + 1];
+			Class<?>[] paramClasses = new Class<?>[paramVales.length + 1];
+			params[0] = expectClazzName;
+			paramClasses[0] = String.class;
+			for (int i = 0; i < paramVales.length; i++) {
+				params[i + 1] = paramVales[i];
+				paramClasses[i + 1] = paramVales[i].getClass();
+			}
+
+			byte[] code = (byte[]) clazz.getMethod("build", paramClasses).invoke(instance, params);
 			return code;
 		} catch (Exception e) {
 			e.printStackTrace();

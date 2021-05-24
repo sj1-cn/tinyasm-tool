@@ -35,11 +35,13 @@ final class ClassSignature extends SignatureVisitor {
 	}
 
 	Map<String, String> classParameters;
+	Map<String, String> methodUsedClassParameters;
 
-	ClassSignature(int api, Map<String, String> classParameters, Map<String, String> tiny_referedTypes) {
+	ClassSignature(int api, Map<String, String> classParameters, Map<String, String> methodUsedClassParameters, Map<String, String> tiny_referedTypes) {
 		super(api);
 		this.referedTypes = tiny_referedTypes;
 		this.classParameters = classParameters;
+		this.methodUsedClassParameters = methodUsedClassParameters;
 	}
 
 	String header = "root";
@@ -197,6 +199,7 @@ final class ClassSignature extends SignatureVisitor {
 			String className = name.replace('/', '.');
 
 			if (classParameters != null && classParameters.containsKey(className)) {
+				methodUsedClassParameters.put(className, classParameters.get(className));
 				if (!array) {
 					sb.append(classParameters.get(className));
 				} else {
@@ -226,6 +229,7 @@ final class ClassSignature extends SignatureVisitor {
 			sb.append("Clazz.of(");
 
 			if (classParameters != null && classParameters.containsKey(className)) {
+				methodUsedClassParameters.put(className, classParameters.get(className));
 				if (!array) {
 					sb.append(classParameters.get(className));
 				} else {

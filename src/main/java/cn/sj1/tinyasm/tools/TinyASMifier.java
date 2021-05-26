@@ -1695,14 +1695,14 @@ public class TinyASMifier extends Printer {
 						params.add("\"" + (String) classDefinedClassParameterClasses[i] + "\"" );
 					}
 				}
+				text.add("//\tpublic static byte[] dump() throws Exception {\n");
+				text.add("//\t\treturn new " + className + "().build(" + String.join(",", params) + ");\n");
+				text.add("//\t}\n\n");
+			}else {
+				text.add("\tpublic static byte[] dump() throws Exception {\n");
+				text.add("\t\treturn new " + className + "().build(" + String.join(",", params) + ");\n");
+				text.add("\t}\n\n");
 			}
-//			for (Entry<String, String> entry : this.classDefinedClassParameters.entrySet()) {
-//				params.add(entry.getKey() + ".class");
-//			}
-
-			text.add("\tpublic static byte[] dump() throws Exception {\n");
-			text.add("\t\treturn new " + className + "().build(" + String.join(",", params) + ");\n");
-			text.add("\t}\n\n");
 		}
 
 		{
@@ -2860,9 +2860,11 @@ public class TinyASMifier extends Printer {
 			StringBuilder sb = new StringBuilder();
 
 			for (String key : tiny_referedTypes.keySet()) {
-				sb.append("import ");
-				sb.append(key);
-				sb.append(";\n");
+				if(!key.startsWith("java.lang")) {
+					sb.append("import ");
+					sb.append(key);
+					sb.append(";\n");	
+				}
 			}
 			return sb.toString();
 		}

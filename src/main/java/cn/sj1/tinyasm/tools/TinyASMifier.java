@@ -135,19 +135,19 @@ public class TinyASMifier extends Printer {
 	}
 
 	private Map<String, String> classDefinedClassParameters;
-	private String[] classDefinedClassParameterNames;
-	private Object[] classDefinedClassParameterClasses;
+	private List<String> classDefinedClassParameterNames;
+	private List<?> classDefinedClassParameterClasses;
 
-	public TinyASMifier(String[] names, Object[] classes) {
+	public TinyASMifier(List<String> names, List<?> classes) {
 		this(/* latest api = */ Opcodes.ASM8, "classBody", 0);
 		this.classDefinedClassParameters = new HashMap<>();
 		this.classDefinedClassParameterNames = names;
 		this.classDefinedClassParameterClasses = classes;
-		for (int i = 0; i < classes.length; i++) {
-			if (classes[i] instanceof Class) {
-				this.classDefinedClassParameters.put(((Class<?>) classes[i]).getName(), names[i]);
-			} else if (classes[i] instanceof String) {
-				this.classDefinedClassParameters.put((String) classes[i], names[i]);
+		for (int i = 0; i < classes.size(); i++) {
+			if (classes.get(i) instanceof Class) {
+				this.classDefinedClassParameters.put(((Class<?>) classes.get(i)).getName(), names.get(i));
+			} else if (classes.get(i) instanceof String) {
+				this.classDefinedClassParameters.put((String) classes.get(i), names.get(i));
 			}
 		}
 //		this.classDefinedClassParameters = parameters;
@@ -1658,23 +1658,22 @@ public class TinyASMifier extends Printer {
 		// text.add("import org.objectweb.asm.ClassWriter;\n");
 		// text.add("import org.objectweb.asm.ConstantDynamic;\n");
 		// text.add("import org.objectweb.asm.FieldVisitor;\n");
-		text.add("import org.objectweb.asm.Label;\n");
 		text.add("import org.objectweb.asm.Handle;\n");
+		text.add("import org.objectweb.asm.Label;\n");
 		text.add("import org.objectweb.asm.Opcodes;\n");
+		text.add("import org.objectweb.asm.Type;\n");
+		text.add("import static org.objectweb.asm.Opcodes.*;\n");
+		text.add("\n");
+		text.add("import cn.sj1.tinyasm.core.Annotation;\n");
+		text.add("import cn.sj1.tinyasm.core.ClassBody;\n");
+		text.add("import cn.sj1.tinyasm.core.ClassBuilder;\n");
+		text.add("import cn.sj1.tinyasm.core.Clazz;\n");
+		text.add("import cn.sj1.tinyasm.core.MethodCode;\n");
+		text.add("\n");
 
 		// text.add("import org.objectweb.asm.MethodVisitor;\n");
 		// text.add("import org.objectweb.asm.Type;\n");
 		// text.add("import org.objectweb.asm.TypePath;\n");
-
-		text.add("import cn.sj1.tinyasm.core.ClassBody;\n");
-		text.add("import cn.sj1.tinyasm.core.ClassBuilder;\n");
-		text.add("import cn.sj1.tinyasm.core.MethodCode;\n");
-		text.add("import org.objectweb.asm.Type;\n");
-
-		text.add("import static org.objectweb.asm.Opcodes.*;\n");
-
-		text.add("import cn.sj1.tinyasm.core.Annotation;\n");
-		text.add("import cn.sj1.tinyasm.core.Clazz;\n");
 		text.add(new TinyHolderReferTypes());
 
 		text.add("@SuppressWarnings(\"unused\")\n");
@@ -1688,17 +1687,17 @@ public class TinyASMifier extends Printer {
 
 			params.add("\"" + name.replace('/', '.') + "\"");
 			if (classDefinedClassParameterClasses != null) {
-				for (int i = 0; i < classDefinedClassParameterClasses.length; i++) {
-					if (classDefinedClassParameterClasses[i] instanceof Class) {
-						params.add(((Class<?>) classDefinedClassParameterClasses[i]).getName() + ".class");
-					} else if (classDefinedClassParameterClasses[i] instanceof String) {
-						params.add("\"" + (String) classDefinedClassParameterClasses[i] + "\"" );
+				for (int i = 0; i < classDefinedClassParameterClasses.size(); i++) {
+					if (classDefinedClassParameterClasses.get(i) instanceof Class) {
+						params.add(((Class<?>) classDefinedClassParameterClasses.get(i)).getName() + ".class");
+					} else if (classDefinedClassParameterClasses.get(i) instanceof String) {
+						params.add("\"" + (String) classDefinedClassParameterClasses.get(i) + "\"");
 					}
 				}
 				text.add("//\tpublic static byte[] dump() throws Exception {\n");
 				text.add("//\t\treturn new " + className + "().build(" + String.join(",", params) + ");\n");
 				text.add("//\t}\n\n");
-			}else {
+			} else {
 				text.add("\tpublic static byte[] dump() throws Exception {\n");
 				text.add("\t\treturn new " + className + "().build(" + String.join(",", params) + ");\n");
 				text.add("\t}\n\n");
@@ -1712,17 +1711,17 @@ public class TinyASMifier extends Printer {
 			params.add("className");
 
 			if (classDefinedClassParameterClasses != null) {
-				for (int i = 0; i < classDefinedClassParameterClasses.length; i++) {
-					Object value = classDefinedClassParameterClasses[i];
-					if(value instanceof String) {
-						paramDefines.add("String " + classDefinedClassParameterNames[i]);
-						
-					}else if(value instanceof Class) {
-						paramDefines.add("Class<?> " + classDefinedClassParameterNames[i]);
-						
+				for (int i = 0; i < classDefinedClassParameterClasses.size(); i++) {
+					Object value = classDefinedClassParameterClasses.get(i);
+					if (value instanceof String) {
+						paramDefines.add("String " + classDefinedClassParameterNames.get(i));
+
+					} else if (value instanceof Class) {
+						paramDefines.add("Class<?> " + classDefinedClassParameterNames.get(i));
+
 					}
-					
-					params.add(classDefinedClassParameterNames[i]);
+
+					params.add(classDefinedClassParameterNames.get(i));
 				}
 			}
 //
@@ -2785,12 +2784,12 @@ public class TinyASMifier extends Printer {
 			StringBuilder sb = new StringBuilder();
 			for (Entry<String, String> entry : params.entrySet()) {
 				sb.append(", ");
-				for (int i = 0; i < classDefinedClassParameterNames.length; i++) {
-					if(entry.getValue().equals(classDefinedClassParameterNames[i])) {
-						Object v = classDefinedClassParameterClasses[i];
-						if(v instanceof String) {
+				for (int i = 0; i < classDefinedClassParameterNames.size(); i++) {
+					if (entry.getValue().equals(classDefinedClassParameterNames.get(i))) {
+						Object v = classDefinedClassParameterClasses.get(i);
+						if (v instanceof String) {
 							sb.append("String ");
-						}else if(v instanceof Class) {
+						} else if (v instanceof Class) {
 							sb.append("Class<?> ");
 						}
 					}
@@ -2857,15 +2856,57 @@ public class TinyASMifier extends Printer {
 
 		@Override
 		public String toString() {
-			StringBuilder sb = new StringBuilder();
 
+			List<String> importsList = new ArrayList<>();
 			for (String key : tiny_referedTypes.keySet()) {
-				if(!key.startsWith("java.lang")) {
-					sb.append("import ");
-					sb.append(key);
-					sb.append(";\n");	
+				String packageName = key.substring(0, key.lastIndexOf("."));
+				if (!packageName.equals("java.lang")) {
+					importsList.add(key);
 				}
 			}
+
+			StringBuilder sb = new StringBuilder();
+			importsList.sort((e1, e2) -> e1.compareTo(e2));
+			String lastP2 = "";
+			boolean hasImport = false;
+			for (String key : importsList) {
+				if (!key.startsWith("java.")) continue;
+				sb.append("import ");
+				sb.append(key);
+				sb.append(";\n");
+				hasImport = true;
+			}
+
+			lastP2 = hasImport ? "" : null;
+
+			for (String key : importsList) {
+				if (key.startsWith("java.")) continue;
+				String p2;
+				int c1 = key.indexOf(".");
+				if (c1 > 0) {
+					int c2 = key.indexOf(".", c1 + 1);
+					if (c2 > 0) {
+						p2 = key.substring(0, c2);
+					} else {
+						p2 = key.substring(0, c1);
+					}
+				} else {
+					p2 = "";
+				}
+
+				if (lastP2 != null && !p2.equals(lastP2)) {
+					sb.append("\n");
+				}
+				lastP2 = p2;
+
+				sb.append("import ");
+				sb.append(key);
+				sb.append(";\n");
+				hasImport = true;
+			}
+
+			if (hasImport) sb.append("\n");
+
 			return sb.toString();
 		}
 

@@ -25,6 +25,40 @@ import org.objectweb.asm.util.ASMifier;
 import org.objectweb.asm.util.TraceClassVisitor;
 
 public class TinyAsmTestUtils {
+	private static String TARGET_DEFAULT = "src/test/java";
+
+	private static ThreadLocal<String> target = new ThreadLocal<String>();
+
+	public static String getTarget() {
+		if (target == null || target.get() == null) {
+			target = new ThreadLocal<>();
+			target.set(TARGET_DEFAULT);
+			ensurePathExist(new File(TARGET_DEFAULT));
+			return TARGET_DEFAULT;
+		} else {
+			return target.get();
+		}
+	}
+
+	public static void setTarget(String path) {
+		if (target == null) {
+			target = new ThreadLocal<String>();
+		}
+		if (path.equals(target.get())) {
+
+		} else {
+			target.set(path);
+			ensurePathExist(new File(path));
+		}
+	}
+
+	private static void ensurePathExist(File path) {
+		if (path.exists()) return;
+		else {
+			ensurePathExist(path.getParentFile());
+			path.mkdir();
+		}
+	}
 
 	public static String tinyasmToString(Class<?> clazz) {
 		try {
@@ -43,7 +77,7 @@ public class TinyAsmTestUtils {
 		}
 	}
 
-	public static String tinyasmToString(Class<?> clazz, String[] names, Object[] classes) {
+	public static String tinyasmToString(Class<?> clazz, List<String> names, List<?> classes) {
 		try {
 			ClassReader cr = new ClassReader(clazz.getName());
 			StringWriter sw = new StringWriter();
@@ -149,6 +183,7 @@ public class TinyAsmTestUtils {
 	}
 
 	public static void writeToFile(String str, File file) {
+		ensurePathExist(file.getParentFile());
 		try {
 			FileOutputStream os = new FileOutputStream(file);
 			os.write(str.getBytes("utf-8"));
@@ -174,19 +209,19 @@ public class TinyAsmTestUtils {
 	}
 
 	public static String readJavaSourceFile(String className) {
-		return readJavaSourceFile(new File("src/test/java", className.replace('.', '/') + ".java"));
+		return readJavaSourceFile(new File(getTarget(), className.replace('.', '/') + ".java"));
 	}
 
 	public static String readJavaSourceFile(Class<?> clazz) {
-		return readJavaSourceFile(new File("src/test/java", clazz.getName().replace('.', '/') + ".java"));
+		return readJavaSourceFile(new File(getTarget(), clazz.getName().replace('.', '/') + ".java"));
 	}
 
 	public static void writeJavaSourceFile(String className, String code) {
-		writeToFile(code, new File("src/test/java", className.replace('.', '/') + ".java"));
+		writeToFile(code, new File(getTarget(), className.replace('.', '/') + ".java"));
 	}
 
 	public static void writeJavaSourceFile(Class<?> clazz, String code) {
-		writeToFile(code, new File("src/test/java", clazz.getName().replace('.', '/') + ".java"));
+		writeToFile(code, new File(getTarget(), clazz.getName().replace('.', '/') + ".java"));
 	}
 
 	public static byte[] dumpTinyAsm(Class<?> expectedClazz) {
@@ -197,10 +232,10 @@ public class TinyAsmTestUtils {
 
 			String dumpClazz = expectClazzName + "TinyAsmDump";
 
-			writeToFile(tingasmCreatedDumpCode, new File("src/test/java", dumpClazz.replace('.', '/') + ".java"));
+			writeToFile(tingasmCreatedDumpCode, new File(getTarget(), dumpClazz.replace('.', '/') + ".java"));
 
-			complie2Class(new File("src/test/java", dumpClazz.replace('.', '/') + ".java"));
-			Class<?> clazz = loadClass(new File("src/test/java", dumpClazz.replace('.', '/') + ".java"), dumpClazz);
+			complie2Class(new File(getTarget(), dumpClazz.replace('.', '/') + ".java"));
+			Class<?> clazz = loadClass(new File(getTarget(), dumpClazz.replace('.', '/') + ".java"), dumpClazz);
 			byte[] code = (byte[]) clazz.getMethod("dump").invoke(null);
 			return code;
 		} catch (Exception e) {
@@ -210,18 +245,18 @@ public class TinyAsmTestUtils {
 	}
 
 	public static byte[] dumpTinyAsm(Class<?> expectedClazz, String firstName, Object firstClass, String secondName, Object secondClass) {
-		return dumpTinyAsm(expectedClazz, new String[] { firstName, secondName }, new Object[] { firstClass, secondClass });
+		return dumpTinyAsm(expectedClazz, Arrays.asList(firstName, secondName), Arrays.asList(firstClass, secondClass));
 	}
 
 	public static byte[] dumpTinyAsm(Class<?> expectedClazz, String firstName, Object firstClass, String secondName, Object secondClass, String thirdName, Class<?> thirdClass) {
-		return dumpTinyAsm(expectedClazz, new String[] { firstName, secondName, thirdName }, new Object[] { firstClass, secondClass, thirdClass });
+		return dumpTinyAsm(expectedClazz, Arrays.asList(firstName, secondName, thirdName), Arrays.asList(firstClass, secondClass, thirdClass));
 	}
 
 	public static byte[] dumpTinyAsm(Class<?> expectedClazz, String firstName, Object firstClass) {
-		return dumpTinyAsm(expectedClazz, new String[] { firstName }, new Object[] { firstClass });
+		return dumpTinyAsm(expectedClazz, Arrays.asList(firstName), Arrays.asList(firstClass));
 	}
 
-	public static byte[] dumpTinyAsm(Class<?> expectedClazz, String[] paramNames, Object[] paramVales) {
+	public static byte[] dumpTinyAsm(Class<?> expectedClazz, List<String> paramNames, List<? extends Object> paramVales) {
 
 		try {
 			String expectClazzName = expectedClazz.getName();
@@ -229,19 +264,19 @@ public class TinyAsmTestUtils {
 
 			String dumpClazz = expectClazzName + "TinyAsmDump";
 
-			writeToFile(tingasmCreatedDumpCode, new File("src/test/java", dumpClazz.replace('.', '/') + ".java"));
+			writeToFile(tingasmCreatedDumpCode, new File(getTarget(), dumpClazz.replace('.', '/') + ".java"));
 
-			complie2Class(new File("src/test/java", dumpClazz.replace('.', '/') + ".java"));
-			Class<?> clazz = loadClass(new File("src/test/java", dumpClazz.replace('.', '/') + ".java"), dumpClazz);
+			complie2Class(new File(getTarget(), dumpClazz.replace('.', '/') + ".java"));
+			Class<?> clazz = loadClass(new File(getTarget(), dumpClazz.replace('.', '/') + ".java"), dumpClazz);
 			Object instance = clazz.getConstructor().newInstance();
 
-			Object[] params = new Object[paramVales.length + 1];
-			Class<?>[] paramClasses = new Class<?>[paramVales.length + 1];
+			Object[] params = new Object[paramVales.size() + 1];
+			Class<?>[] paramClasses = new Class<?>[paramVales.size() + 1];
 			params[0] = expectClazzName;
 			paramClasses[0] = String.class;
-			for (int i = 0; i < paramVales.length; i++) {
-				params[i + 1] = paramVales[i];
-				paramClasses[i + 1] = paramVales[i].getClass();
+			for (int i = 0; i < paramVales.size(); i++) {
+				params[i + 1] = paramVales.get(i);
+				paramClasses[i + 1] = paramVales.get(i).getClass();
 			}
 
 			byte[] code = (byte[]) clazz.getMethod("build", paramClasses).invoke(instance, params);

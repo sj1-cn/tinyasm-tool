@@ -1624,11 +1624,36 @@ public class TinyASMifier extends Printer {
 		sb.append(name);
 		for (Type type : methodParamTypes2) {
 			sb.append("_");
-			sb.append(type.getClassName().replace("java.lang", "").replaceAll("[.]", "").replaceAll("\\[\\]", "_array_"));
+			sb.append(extracted(type));
 		}
 		sb.append("_");
-		sb.append(returnType.getClassName().replace("java.lang", "").replaceAll("[.]", "").replaceAll("\\[\\]", "_array_"));
+		sb.append(extracted(returnType));
 		return sb.toString();
+	}
+
+	protected String extracted(Type type) {
+		String className = type.getClassName();
+
+		if (className.startsWith("java.lang"))
+			return className.replace("java.lang", "").replaceAll("[.]", "").replaceAll("\\[\\]", "_array_");
+		if (className.startsWith("java.sql"))
+			return className.replace("java.sql", "").replaceAll("[.]", "").replaceAll("\\[\\]", "_array_");
+
+		
+		String ownerClassName = tiny_className.replace("/", ".");
+
+		int lastPos = 0;
+		int pos = ownerClassName.indexOf(".", lastPos);
+
+		while (pos > 0 && className.startsWith(ownerClassName.substring(0, pos))) {
+			lastPos = pos;
+			pos = ownerClassName.indexOf(".", lastPos + 1);
+		}
+		if (lastPos > 0) {
+			return className.substring(lastPos + 1).replaceAll("[.]", "");
+		} else {
+			return className.replaceAll("[.]", "").replaceAll("\\[\\]", "_array_");
+		}
 	}
 
 	protected void tiny_visit(final int access, final String name, final String signature, final String superName, final String[] interfaces) {

@@ -1639,7 +1639,6 @@ public class TinyASMifier extends Printer {
 		if (className.startsWith("java.sql"))
 			return className.replace("java.sql", "").replaceAll("[.]", "").replaceAll("\\[\\]", "_array_");
 
-		
 		String ownerClassName = tiny_className.replace("/", ".");
 
 		int lastPos = 0;
@@ -1947,7 +1946,7 @@ public class TinyASMifier extends Printer {
 		stringBuilder.append("(classBody");
 		text.add(stringBuilder.toString());
 
-		text.add(new ParamterClassesInvokeHolder(methodUsedClassParameters));
+		text.add(new MethodParamterClassesInvokeHolder(classDefinedClassParameterNames, methodUsedClassParameters));
 
 		stringBuilder.setLength(0);
 		stringBuilder.append(");\n");
@@ -1971,7 +1970,7 @@ public class TinyASMifier extends Printer {
 		stringBuilder.append("(ClassBody classBody");
 		tiny_textMethods.add(stringBuilder.toString());
 
-		tiny_textMethods.add(new ParamterClassesHolder(methodUsedClassParameters));
+		tiny_textMethods.add(new MethodParamterClassesHolder(methodUsedClassParameters));
 
 		stringBuilder.setLength(0);
 		stringBuilder.append(") {\n");
@@ -2796,53 +2795,63 @@ public class TinyASMifier extends Printer {
 	 * ================================================================================================================
 	 */
 
-	class ParamterClassesHolder {
+	class MethodParamterClassesHolder {
 		Map<String, String> params;
 
-		public ParamterClassesHolder(Map<String, String> params) {
+		public MethodParamterClassesHolder(Map<String, String> params) {
 			super();
 			this.params = params;
 		}
 
 		@Override
 		public String toString() {
+			if(classDefinedClassParameterNames==null) return "";
 			StringBuilder sb = new StringBuilder();
-			for (Entry<String, String> entry : params.entrySet()) {
-				sb.append(", ");
-				for (int i = 0; i < classDefinedClassParameterNames.size(); i++) {
+
+			for (int i = 0; i < classDefinedClassParameterNames.size(); i++) {
+				for (Entry<String, String> entry : params.entrySet()) {
 					if (entry.getValue().equals(classDefinedClassParameterNames.get(i))) {
+						sb.append(", ");
 						Object v = classDefinedClassParameterClasses.get(i);
 						if (v instanceof String) {
 							sb.append("String ");
 						} else if (v instanceof Class) {
 							sb.append("Class<?> ");
 						}
+						sb.append(" ");
+						sb.append(entry.getValue());
 					}
 				}
-				sb.append(" ");
-				sb.append(entry.getValue());
 
 			}
+
 			return sb.toString();
 		}
 	}
 
-	class ParamterClassesInvokeHolder {
+	class MethodParamterClassesInvokeHolder {
+		List<String> classDefinedClassParameterNames;
 		Map<String, String> params;
 
-		public ParamterClassesInvokeHolder(Map<String, String> params) {
+		public MethodParamterClassesInvokeHolder(List<String> classDefinedClassParameterNames, Map<String, String> params) {
 			super();
+			this.classDefinedClassParameterNames = classDefinedClassParameterNames;
 			this.params = params;
 		}
 
 		@Override
 		public String toString() {
+			if(classDefinedClassParameterNames==null) return "";
 			StringBuilder sb = new StringBuilder();
-			for (Entry<String, String> entry : params.entrySet()) {
-				sb.append(",");
-				sb.append(entry.getValue());
-
+			for (int i = 0; i < classDefinedClassParameterNames.size(); i++) {
+				for (Entry<String, String> entry : params.entrySet()) {
+					if (entry.getValue().equals(classDefinedClassParameterNames.get(i))) {
+						sb.append(",");
+						sb.append(entry.getValue());
+					}
+				}
 			}
+
 			return sb.toString();
 		}
 	}

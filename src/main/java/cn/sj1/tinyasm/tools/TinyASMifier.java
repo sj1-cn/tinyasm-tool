@@ -1255,6 +1255,44 @@ public class TinyASMifier extends Printer {
 		}
 	}
 
+	public String appendTypeConstant(Type type, Map<String, String> referedTypes) {
+
+		logger.trace("clazzOf - {} ", type.getClassName());
+		if (this.classDefinedClassParameters != null && this.classDefinedClassParameters.containsKey(type.getClassName())) {
+			logger.trace("clazzOf - {} is in paramter {}", type.getClassName(), this.classDefinedClassParameters.get(type.getClassName()));
+			methodUsedClassParameters.put(type.getClassName(), this.classDefinedClassParameters.get(type.getClassName()));
+			stringBuilder.append("Type.getType(");
+			stringBuilder.append(this.classDefinedClassParameters.get(type.getClassName()));
+			stringBuilder.append(")");
+		} else if (tiny_primativeTypeMaps.containsKey(type.getInternalName())) {
+			stringBuilder.append("Type.getType(\"");
+			stringBuilder.append(tiny_primativeTypeMaps.get(type.getInternalName()));
+			stringBuilder.append("\")");
+		} else if (type.getSort() == Type.ARRAY && type.getElementType().getSort() == Type.OBJECT) {
+			stringBuilder.append("Type.getType(\"");
+			logger.trace("{} Array", type.getElementType());
+			referedTypes.put(type.getElementType().getClassName(), "");
+			stringBuilder.append(toSimpleName(type.getElementType().getClassName()) + "[].class");
+			stringBuilder.append("\")");
+		} else if (type.getSort() == Type.OBJECT) {
+			referedTypes.put(type.getClassName(), "");
+			stringBuilder.append("Type.getType(");
+			stringBuilder.append(toSimpleName(type.getClassName()) + ".class");
+			stringBuilder.append(")");
+		}
+
+//		Class<?> c = char[].class.isar;
+		return "unknown.class";
+//		switch (description) {
+//		case "I":
+//			return "int.class";
+//
+//		default:
+//			break;
+//		}
+//		return null;
+	}
+
 	/**
 	 * Appends a string representation of the given constant to
 	 * {@link #stringBuilder}.
@@ -1270,9 +1308,7 @@ public class TinyASMifier extends Printer {
 		} else if (value instanceof String) {
 			appendString(stringBuilder, (String) value);
 		} else if (value instanceof Type) {
-			stringBuilder.append("Type.getType(\"");
-			stringBuilder.append(((Type) value).getDescriptor());
-			stringBuilder.append("\")");
+			appendTypeConstant((Type) value, tiny_referedTypes);
 		} else if (value instanceof Handle) {
 			stringBuilder.append("new Handle(");
 			Handle handle = (Handle) value;
@@ -2071,14 +2107,14 @@ public class TinyASMifier extends Printer {
 
 		case GETSTATIC: // 178; // visitFieldInsn
 
-			if (this.tiny_className.equals(owner)) {
-
-				stringBuilder.setLength(0);
-				stringBuilder.append(this.visitname).append(".GET_THIS_STATIC(");
-				appendConstant(name);
-				stringBuilder.append(");\n");
-				text.add(stringBuilder.toString());
-			} else {
+//			if (this.tiny_className.equals(owner)) {
+//
+//				stringBuilder.setLength(0);
+//				stringBuilder.append(this.visitname).append(".GET_THIS_STATIC(");
+//				appendConstant(name);
+//				stringBuilder.append(");\n");
+//				text.add(stringBuilder.toString());
+//			} else {
 				// code.GETSTATIC(System.class,"out",PrintStream.class);
 				stringBuilder.setLength(0);
 				stringBuilder.append(this.visitname).append(".GETSTATIC(");
@@ -2089,18 +2125,18 @@ public class TinyASMifier extends Printer {
 				stringBuilder.append(clazzOf(Type.getType(descriptor), tiny_referedTypes));
 				stringBuilder.append(");\n");
 				text.add(stringBuilder.toString());
-			}
+//			}
 			break;
 		case PUTSTATIC: // 179; // -
 
 			// code.GETSTATIC(System.class,"out",PrintStream.class);
-			if (this.tiny_className.equals(owner)) {
-				stringBuilder.setLength(0);
-				stringBuilder.append(this.visitname).append(".PUT_THIS_STATIC(");
-				appendConstant(name);
-				stringBuilder.append(");\n");
-				text.add(stringBuilder.toString());
-			} else {
+//			if (this.tiny_className.equals(owner)) {
+//				stringBuilder.setLength(0);
+//				stringBuilder.append(this.visitname).append(".PUT_THIS_STATIC(");
+//				appendConstant(name);
+//				stringBuilder.append(");\n");
+//				text.add(stringBuilder.toString());
+//			} else {
 
 				stringBuilder.setLength(0);
 				stringBuilder.append(this.visitname).append(".PUTSTATIC(");
@@ -2111,7 +2147,7 @@ public class TinyASMifier extends Printer {
 				stringBuilder.append(clazzOf(Type.getType(descriptor), tiny_referedTypes));
 				stringBuilder.append(");\n");
 				text.add(stringBuilder.toString());
-			}
+//			}
 			break;
 
 		case GETFIELD: // 180; // -
@@ -2127,13 +2163,13 @@ public class TinyASMifier extends Printer {
 			// stringBuilder.append(");\n");
 			// text.add(stringBuilder.toString());
 
-			if (this.tiny_className.equals(owner)) {
-				stringBuilder.setLength(0);
-				stringBuilder.append(this.visitname).append(".GETFIELD_OF_THIS(");
-				appendConstant(name);
-				stringBuilder.append(");\n");
-				text.add(stringBuilder.toString());
-			} else {
+//			if (this.tiny_className.equals(owner) && this.tiny_className.equals(Type.getType(descriptor).getClassName())) {
+//				stringBuilder.setLength(0);
+//				stringBuilder.append(this.visitname).append(".GETFIELD_OF_THIS(");
+//				appendConstant(name);
+//				stringBuilder.append(");\n");
+//				text.add(stringBuilder.toString());
+//			} else {
 				stringBuilder.setLength(0);
 				stringBuilder.append(this.visitname).append(".GETFIELD(");
 				appendConstant(name);
@@ -2141,7 +2177,7 @@ public class TinyASMifier extends Printer {
 				stringBuilder.append(clazzOf(Type.getType(descriptor), tiny_referedTypes));
 				stringBuilder.append(");\n");
 				text.add(stringBuilder.toString());
-			}
+//			}
 			break;
 		case PUTFIELD: // 181; // -
 			// stringBuilder.setLength(0);
@@ -2156,13 +2192,13 @@ public class TinyASMifier extends Printer {
 			// stringBuilder.append(");\n");
 			// text.add(stringBuilder.toString());
 
-			if (this.tiny_className.equals(owner)) {
-				stringBuilder.setLength(0);
-				stringBuilder.append(this.visitname).append(".PUTFIELD_OF_THIS(");
-				appendConstant(name);
-				stringBuilder.append(");\n");
-				text.add(stringBuilder.toString());
-			} else {
+//			if (this.tiny_className.equals(owner) && this.tiny_className.equals(Type.getType(descriptor).getClassName())) {
+//				stringBuilder.setLength(0);
+//				stringBuilder.append(this.visitname).append(".PUTFIELD_OF_THIS(");
+//				appendConstant(name);
+//				stringBuilder.append(");\n");
+//				text.add(stringBuilder.toString());
+//			} else {
 				stringBuilder.setLength(0);
 				stringBuilder.append(this.visitname).append(".PUTFIELD(");
 				appendConstant(name);
@@ -2170,7 +2206,7 @@ public class TinyASMifier extends Printer {
 				stringBuilder.append(clazzOf(Type.getType(descriptor), tiny_referedTypes));
 				stringBuilder.append(");\n");
 				text.add(stringBuilder.toString());
-			}
+//			}
 			break;
 
 		default:
@@ -2805,7 +2841,7 @@ public class TinyASMifier extends Printer {
 
 		@Override
 		public String toString() {
-			if(classDefinedClassParameterNames==null) return "";
+			if (classDefinedClassParameterNames == null) return "";
 			StringBuilder sb = new StringBuilder();
 
 			for (int i = 0; i < classDefinedClassParameterNames.size(); i++) {
@@ -2841,7 +2877,7 @@ public class TinyASMifier extends Printer {
 
 		@Override
 		public String toString() {
-			if(classDefinedClassParameterNames==null) return "";
+			if (classDefinedClassParameterNames == null) return "";
 			StringBuilder sb = new StringBuilder();
 			for (int i = 0; i < classDefinedClassParameterNames.size(); i++) {
 				for (Entry<String, String> entry : params.entrySet()) {

@@ -1760,6 +1760,7 @@ public class TinyASMifier extends Printer {
 		text.add("@SuppressWarnings(\"unused\")\n");
 
 		String className = simpleName + "TinyAsmDump";
+		boolean hasSuperClass = false;
 
 		text.add("public class " + className + " {\n\n");
 
@@ -1828,7 +1829,6 @@ public class TinyASMifier extends Printer {
 		if (signature == null) {
 			stringBuilder.append("\t\tClassBody classBody = ClassBuilder.class_(className");
 			// appendConstant(name.replace('/', '.'));
-			boolean hasSuperClass = false;
 			if (!Object.class.getName().equals(superName.replace('/', '.'))) {
 				hasSuperClass = true;
 				stringBuilder.append(", ");
@@ -1845,6 +1845,7 @@ public class TinyASMifier extends Printer {
 					// appendConstant(interfaces[i]);
 					stringBuilder.append(clazzOf(Type.getObjectType(interfaces[i]), tiny_referedTypes));
 				}
+				hasSuperClass = true;
 				// stringBuilder.append(" }");
 			} else {
 				// stringBuilder.append(", ");
@@ -1859,6 +1860,7 @@ public class TinyASMifier extends Printer {
 			SignatureReader sr = new SignatureReader(signature);
 			ClassSignature signatureVistor = new ClassSignature(super.api, this.classDefinedClassParameters, this.methodUsedClassParameters, tiny_referedTypes);
 			sr.accept(signatureVistor);
+			hasSuperClass = true;
 			stringBuilder.append(signatureVistor.superClass.toString());
 			for (StringBuilder string : signatureVistor.interfacesClassList) {
 				stringBuilder.append(",");
@@ -1873,7 +1875,9 @@ public class TinyASMifier extends Printer {
 			}
 		}
 
-		if (access != ACC_PUBLIC) {
+		if (!hasSuperClass && access == ACC_PUBLIC) {
+		} else if (hasSuperClass && access == (ACC_PUBLIC | ACC_SUPER)) {
+		} else {
 			stringBuilder.append("\n\t\t\t.access(");
 			appendAccessFlags(access | ACCESS_CLASS);
 			stringBuilder.append(")");

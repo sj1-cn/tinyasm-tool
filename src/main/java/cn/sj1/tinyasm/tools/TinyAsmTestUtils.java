@@ -77,7 +77,7 @@ public class TinyAsmTestUtils {
 		}
 	}
 
-	public static String tinyasmToString(Class<?> clazz, List<String> names, List<?> classes) {
+	public static String tinyasmToString(Class<?> clazz, List<String> names, List<Object> classes) {
 		try {
 			ClassReader cr = new ClassReader(clazz.getName());
 			StringWriter sw = new StringWriter();
@@ -256,7 +256,7 @@ public class TinyAsmTestUtils {
 		return dumpTinyAsm(expectedClazz, Arrays.asList(firstName), Arrays.asList(firstClass));
 	}
 
-	public static byte[] dumpTinyAsm(Class<?> expectedClazz, List<String> paramNames, List<? extends Object> paramVales) {
+	public static byte[] dumpTinyAsm(Class<?> expectedClazz, List<String> paramNames, List<Object> paramVales) {
 
 		try {
 			String expectClazzName = expectedClazz.getName();

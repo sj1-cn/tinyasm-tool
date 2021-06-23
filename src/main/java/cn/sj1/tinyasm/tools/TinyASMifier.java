@@ -156,7 +156,7 @@ public class TinyASMifier extends Printer {
 				this.classDefinedClassParameters.put((String) classes.get(i), names.get(i));
 			}
 		}
-//		this.classDefinedClassParameters = parameters;
+		//		this.classDefinedClassParameters = parameters;
 		if (getClass() != TinyASMifier.class) {
 			throw new IllegalStateException();
 		}
@@ -181,36 +181,36 @@ public class TinyASMifier extends Printer {
 		this.id = annotationVisitorId;
 	}
 
-//	/**
-//	 * Prints the ASM source code to generate the given class to the standard
-//	 * output.
-//	 *
-//	 * <p>
-//	 * Usage: ASMifier [-nodebug] &lt;binary class name or class file name&gt;
-//	 *
-//	 * @param args the command line arguments.
-//	 * @throws IOException if the class cannot be found, or if an IOException
-//	 *                     occurs.
-//	 */
-//	public static void main(final String[] args) throws IOException {
-//		main(args, new PrintWriter(System.out, true), new PrintWriter(System.err, true));
-//	}
-//
-//	/**
-//	 * Prints the ASM source code to generate the given class to the given output.
-//	 *
-//	 * <p>
-//	 * Usage: ASMifier [-nodebug] &lt;binary class name or class file name&gt;
-//	 *
-//	 * @param args   the command line arguments.
-//	 * @param output where to print the result.
-//	 * @param logger where to log errors.
-//	 * @throws IOException if the class cannot be found, or if an IOException
-//	 *                     occurs.
-//	 */
-//	static void main(final String[] args, final PrintWriter output, final PrintWriter logger) throws IOException {
-//		main(args, USAGE, new TinyASMifier(), output, logger);
-//	}
+	//	/**
+	//	 * Prints the ASM source code to generate the given class to the standard
+	//	 * output.
+	//	 *
+	//	 * <p>
+	//	 * Usage: ASMifier [-nodebug] &lt;binary class name or class file name&gt;
+	//	 *
+	//	 * @param args the command line arguments.
+	//	 * @throws IOException if the class cannot be found, or if an IOException
+	//	 *                     occurs.
+	//	 */
+	//	public static void main(final String[] args) throws IOException {
+	//		main(args, new PrintWriter(System.out, true), new PrintWriter(System.err, true));
+	//	}
+	//
+	//	/**
+	//	 * Prints the ASM source code to generate the given class to the given output.
+	//	 *
+	//	 * <p>
+	//	 * Usage: ASMifier [-nodebug] &lt;binary class name or class file name&gt;
+	//	 *
+	//	 * @param args   the command line arguments.
+	//	 * @param output where to print the result.
+	//	 * @param logger where to log errors.
+	//	 * @throws IOException if the class cannot be found, or if an IOException
+	//	 *                     occurs.
+	//	 */
+	//	static void main(final String[] args, final PrintWriter output, final PrintWriter logger) throws IOException {
+	//		main(args, USAGE, new TinyASMifier(), output, logger);
+	//	}
 
 	// -----------------------------------------------------------------------------------------------
 	// Classes
@@ -230,7 +230,7 @@ public class TinyASMifier extends Printer {
 		stringBuilder.append(", ");
 		appendConstant(debug);
 		stringBuilder.append(END_PARAMETERS);
-//		text.add(stringBuilder.toString());
+		//		text.add(stringBuilder.toString());
 	}
 
 	@Override
@@ -245,6 +245,17 @@ public class TinyASMifier extends Printer {
 		stringBuilder.append(END_PARAMETERS);
 		text.add(stringBuilder.toString());
 		TinyASMifier asmifier = createASMifier("moduleVisitor", 0);
+		asmifier.tiny_methodLocals = tiny_methodLocals;
+		asmifier.tiny_methodVisitParameter = this.tiny_methodVisitParameter;
+		asmifier.tiny_methodParamTypes = this.tiny_methodParamTypes;
+		asmifier.tiny_methodSignatureParamClazzList = this.tiny_methodSignatureParamClazzList;
+		asmifier.tiny_methodSignatureTypeParameterClassList = this.tiny_methodSignatureTypeParameterClassList;
+		asmifier.tiny_methodIsStatic = this.tiny_methodIsStatic;
+		asmifier.tiny_className = this.tiny_className;
+
+		asmifier.tiny_referedTypes = this.tiny_referedTypes;
+		asmifier.classDefinedClassParameters = this.classDefinedClassParameters;
+		asmifier.methodUsedClassParameters = methodUsedClassParameters;
 		text.add(asmifier.getText());
 		text.add("}\n");
 		return asmifier;
@@ -296,26 +307,26 @@ public class TinyASMifier extends Printer {
 		text.add(stringBuilder.toString());
 	}
 
-//	@Override
-//	public void visitPermittedSubclass(final String permittedSubclass) {
-//		stringBuilder.setLength(0);
-//		stringBuilder.append("classBody.visitPermittedSubclass(");
-//		appendConstant(permittedSubclass);
-//		stringBuilder.append(END_PARAMETERS);
-//		text.add(stringBuilder.toString());
-//	}
+	//	@Override
+	//	public void visitPermittedSubclass(final String permittedSubclass) {
+	//		stringBuilder.setLength(0);
+	//		stringBuilder.append("classBody.visitPermittedSubclass(");
+	//		appendConstant(permittedSubclass);
+	//		stringBuilder.append(END_PARAMETERS);
+	//		text.add(stringBuilder.toString());
+	//	}
 
 	@Override
 	public void visitInnerClass(final String name, final String outerName, final String innerName, final int access) {
-//		classBody.referInnerClass(ACC_PUBLIC | ACC_FINAL | ACC_STATIC, MethodHandles.class.getName(), "Lookup");
-//		classWriter.visitInnerClass("java/lang/invoke/MethodHandles$Lookup", "java/lang/invoke/MethodHandles", "Lookup", ACC_PUBLIC | ACC_FINAL | ACC_STATIC);
+		//		classBody.referInnerClass(ACC_PUBLIC | ACC_FINAL | ACC_STATIC, MethodHandles.class.getName(), "Lookup");
+		//		classWriter.visitInnerClass("java/lang/invoke/MethodHandles$Lookup", "java/lang/invoke/MethodHandles", "Lookup", ACC_PUBLIC | ACC_FINAL | ACC_STATIC);
 
 		stringBuilder.setLength(0);
 		stringBuilder.append("\t\tclassBody.referInnerClass(");
 		appendAccessFlags(access | ACCESS_INNER);
 		stringBuilder.append(", ");
-//		appendConstant(name);
-//		stringBuilder.append(", ");
+		//		appendConstant(name);
+		//		stringBuilder.append(", ");
 		appendConstant(outerName.replace('/', '.'));
 		stringBuilder.append(", ");
 		appendConstant(innerName);
@@ -336,6 +347,17 @@ public class TinyASMifier extends Printer {
 		stringBuilder.append(");\n");
 		text.add(stringBuilder.toString());
 		TinyASMifier asmifier = createASMifier("recordComponentVisitor", 0);
+		asmifier.tiny_methodLocals = tiny_methodLocals;
+		asmifier.tiny_methodVisitParameter = this.tiny_methodVisitParameter;
+		asmifier.tiny_methodParamTypes = this.tiny_methodParamTypes;
+		asmifier.tiny_methodSignatureParamClazzList = this.tiny_methodSignatureParamClazzList;
+		asmifier.tiny_methodSignatureTypeParameterClassList = this.tiny_methodSignatureTypeParameterClassList;
+		asmifier.tiny_methodIsStatic = this.tiny_methodIsStatic;
+		asmifier.tiny_className = this.tiny_className;
+
+		asmifier.tiny_referedTypes = this.tiny_referedTypes;
+		asmifier.classDefinedClassParameters = this.classDefinedClassParameters;
+		asmifier.methodUsedClassParameters = methodUsedClassParameters;
 		text.add(asmifier.getText());
 		text.add("}\n");
 		return asmifier;
@@ -366,10 +388,12 @@ public class TinyASMifier extends Printer {
 		asmifier.tiny_methodSignatureTypeParameterClassList = this.tiny_methodSignatureTypeParameterClassList;
 		asmifier.tiny_methodIsStatic = this.tiny_methodIsStatic;
 		asmifier.tiny_className = this.tiny_className;
-		asmifier.tiny_annotation = new Annotation();
+
 		asmifier.tiny_referedTypes = this.tiny_referedTypes;
 		asmifier.classDefinedClassParameters = this.classDefinedClassParameters;
 		asmifier.methodUsedClassParameters = methodUsedClassParameters;
+		asmifier.classDefinedClassParameterNames = this.classDefinedClassParameterNames;
+		asmifier.classDefinedClassParameterClasses = this.classDefinedClassParameterClasses;
 		tiny_textMethods.add(asmifier.getText());
 		tiny_textMethods.add("\n\t\tcode.END();\n\t}\n\n");
 		return asmifier;
@@ -472,7 +496,7 @@ public class TinyASMifier extends Printer {
 
 	@Override
 	public void visitModuleEnd() {
-//		text.add("moduleVisitor.visitEnd();\n");
+		//		text.add("moduleVisitor.visitEnd();\n");
 	}
 
 	// -----------------------------------------------------------------------------------------------
@@ -485,9 +509,9 @@ public class TinyASMifier extends Printer {
 	public void visit(final String name, final Object value) {
 		this.tiny_annotation.keys.add(name);
 		stringBuilder.setLength(0);
-//		stringBuilder.append(ANNOTATION_VISITOR).append(id).append(".visit(");
-//		appendConstant(name);
-//		stringBuilder.append(", ");
+		//		stringBuilder.append(ANNOTATION_VISITOR).append(id).append(".visit(");
+		//		appendConstant(name);
+		//		stringBuilder.append(", ");
 		appendConstant(value);
 		this.tiny_annotation.values.add(stringBuilder.toString());
 	}
@@ -517,6 +541,19 @@ public class TinyASMifier extends Printer {
 		text.add(stringBuilder.toString());
 		TinyASMifier asmifier = createASMifier(ANNOTATION_VISITOR, id + 1);
 		asmifier.tiny_annotation = this.tiny_annotation;
+		asmifier.tiny_methodLocals = tiny_methodLocals;
+		asmifier.tiny_methodVisitParameter = this.tiny_methodVisitParameter;
+		asmifier.tiny_methodParamTypes = this.tiny_methodParamTypes;
+		asmifier.tiny_methodSignatureParamClazzList = this.tiny_methodSignatureParamClazzList;
+		asmifier.tiny_methodSignatureTypeParameterClassList = this.tiny_methodSignatureTypeParameterClassList;
+		asmifier.tiny_methodIsStatic = this.tiny_methodIsStatic;
+		asmifier.tiny_className = this.tiny_className;
+
+		asmifier.tiny_referedTypes = this.tiny_referedTypes;
+		asmifier.classDefinedClassParameters = this.classDefinedClassParameters;
+		asmifier.methodUsedClassParameters = methodUsedClassParameters;
+		asmifier.classDefinedClassParameterNames = this.classDefinedClassParameterNames;
+		asmifier.classDefinedClassParameterClasses = this.classDefinedClassParameterClasses;
 		text.add(asmifier.getText());
 		text.add("}\n");
 		return asmifier;
@@ -533,6 +570,19 @@ public class TinyASMifier extends Printer {
 		text.add(stringBuilder.toString());
 		TinyASMifier asmifier = createASMifier(ANNOTATION_VISITOR, id + 1);
 		asmifier.tiny_annotation = this.tiny_annotation;
+		asmifier.tiny_methodLocals = tiny_methodLocals;
+		asmifier.tiny_methodVisitParameter = this.tiny_methodVisitParameter;
+		asmifier.tiny_methodParamTypes = this.tiny_methodParamTypes;
+		asmifier.tiny_methodSignatureParamClazzList = this.tiny_methodSignatureParamClazzList;
+		asmifier.tiny_methodSignatureTypeParameterClassList = this.tiny_methodSignatureTypeParameterClassList;
+		asmifier.tiny_methodIsStatic = this.tiny_methodIsStatic;
+		asmifier.tiny_className = this.tiny_className;
+
+		asmifier.tiny_referedTypes = this.tiny_referedTypes;
+		asmifier.classDefinedClassParameters = this.classDefinedClassParameters;
+		asmifier.methodUsedClassParameters = methodUsedClassParameters;
+		asmifier.classDefinedClassParameterNames = this.classDefinedClassParameterNames;
+		asmifier.classDefinedClassParameterClasses = this.classDefinedClassParameterClasses;
 		text.add(asmifier.getText());
 		text.add("}\n");
 		return asmifier;
@@ -542,7 +592,7 @@ public class TinyASMifier extends Printer {
 	public void visitAnnotationEnd() {
 		stringBuilder.setLength(0);
 		stringBuilder.append(ANNOTATION_VISITOR).append(id).append(VISIT_END);
-//		text.add(stringBuilder.toString());
+		//		text.add(stringBuilder.toString());
 	}
 
 	// -----------------------------------------------------------------------------------------------
@@ -594,7 +644,7 @@ public class TinyASMifier extends Printer {
 	public void visitFieldEnd() {
 		stringBuilder.setLength(0);
 		stringBuilder.append(visitname).append(VISIT_END);
-//		text.add(stringBuilder.toString());
+		//		text.add(stringBuilder.toString());
 	}
 
 	// -----------------------------------------------------------------------------------------------
@@ -617,6 +667,19 @@ public class TinyASMifier extends Printer {
 		TinyASMifier asmifier = createASMifier(ANNOTATION_VISITOR, 0);
 		text.add(asmifier.getText());
 		asmifier.tiny_annotation = tiny_annotation;
+		asmifier.tiny_methodLocals = tiny_methodLocals;
+		asmifier.tiny_methodVisitParameter = this.tiny_methodVisitParameter;
+		asmifier.tiny_methodParamTypes = this.tiny_methodParamTypes;
+		asmifier.tiny_methodSignatureParamClazzList = this.tiny_methodSignatureParamClazzList;
+		asmifier.tiny_methodSignatureTypeParameterClassList = this.tiny_methodSignatureTypeParameterClassList;
+		asmifier.tiny_methodIsStatic = this.tiny_methodIsStatic;
+		asmifier.tiny_className = this.tiny_className;
+
+		asmifier.tiny_referedTypes = this.tiny_referedTypes;
+		asmifier.classDefinedClassParameters = this.classDefinedClassParameters;
+		asmifier.methodUsedClassParameters = methodUsedClassParameters;
+		asmifier.classDefinedClassParameterNames = this.classDefinedClassParameterNames;
+		asmifier.classDefinedClassParameterClasses = this.classDefinedClassParameterClasses;
 		text.add("}\n");
 		return asmifier;
 	}
@@ -648,6 +711,19 @@ public class TinyASMifier extends Printer {
 		text.add(stringBuilder.toString());
 		TinyASMifier asmifier = createASMifier(ANNOTATION_VISITOR, 0);
 		asmifier.tiny_annotation = tiny_annotation;
+		asmifier.tiny_methodLocals = tiny_methodLocals;
+		asmifier.tiny_methodVisitParameter = this.tiny_methodVisitParameter;
+		asmifier.tiny_methodParamTypes = this.tiny_methodParamTypes;
+		asmifier.tiny_methodSignatureParamClazzList = this.tiny_methodSignatureParamClazzList;
+		asmifier.tiny_methodSignatureTypeParameterClassList = this.tiny_methodSignatureTypeParameterClassList;
+		asmifier.tiny_methodIsStatic = this.tiny_methodIsStatic;
+		asmifier.tiny_className = this.tiny_className;
+
+		asmifier.tiny_referedTypes = this.tiny_referedTypes;
+		asmifier.classDefinedClassParameters = this.classDefinedClassParameters;
+		asmifier.methodUsedClassParameters = methodUsedClassParameters;
+		asmifier.classDefinedClassParameterNames = this.classDefinedClassParameterNames;
+		asmifier.classDefinedClassParameterClasses = this.classDefinedClassParameterClasses;
 		text.add(asmifier.getText());
 		text.add("}\n");
 		return asmifier;
@@ -666,46 +742,46 @@ public class TinyASMifier extends Printer {
 
 	@Override
 	public void visitFrame(final int type, final int numLocal, final Object[] local, final int numStack, final Object[] stack) {
-//		stringBuilder.setLength(0);
-//		switch (type) {
-//		case Opcodes.F_NEW:
-//		case Opcodes.F_FULL:
-//			declareFrameTypes(numLocal, local);
-//			declareFrameTypes(numStack, stack);
-//			if (type == Opcodes.F_NEW) {
-//				stringBuilder.append(visitname).append(".visitFrame(Opcodes.F_NEW, ");
-//			} else {
-//				stringBuilder.append(visitname).append(".visitFrame(Opcodes.F_FULL, ");
-//			}
-//			stringBuilder.append(numLocal).append(NEW_OBJECT_ARRAY);
-//			appendFrameTypes(numLocal, local);
-//			stringBuilder.append("}, ").append(numStack).append(NEW_OBJECT_ARRAY);
-//			appendFrameTypes(numStack, stack);
-//			stringBuilder.append('}');
-//			break;
-//		case Opcodes.F_APPEND:
-//			declareFrameTypes(numLocal, local);
-//			stringBuilder.append(visitname).append(".visitFrame(Opcodes.F_APPEND,").append(numLocal).append(NEW_OBJECT_ARRAY);
-//			appendFrameTypes(numLocal, local);
-//			stringBuilder.append("}, 0, null");
-//			break;
-//		case Opcodes.F_CHOP:
-//			stringBuilder.append(visitname).append(".visitFrame(Opcodes.F_CHOP,").append(numLocal).append(", null, 0, null");
-//			break;
-//		case Opcodes.F_SAME:
-//			stringBuilder.append(visitname).append(".visitFrame(Opcodes.F_SAME, 0, null, 0, null");
-//			break;
-//		case Opcodes.F_SAME1:
-//			declareFrameTypes(1, stack);
-//			stringBuilder.append(visitname).append(".visitFrame(Opcodes.F_SAME1, 0, null, 1, new Object[] {");
-//			appendFrameTypes(1, stack);
-//			stringBuilder.append('}');
-//			break;
-//		default:
-//			throw new IllegalArgumentException();
-//		}
-//		stringBuilder.append(");\n");
-//		text.add(stringBuilder.toString());
+		//		stringBuilder.setLength(0);
+		//		switch (type) {
+		//		case Opcodes.F_NEW:
+		//		case Opcodes.F_FULL:
+		//			declareFrameTypes(numLocal, local);
+		//			declareFrameTypes(numStack, stack);
+		//			if (type == Opcodes.F_NEW) {
+		//				stringBuilder.append(visitname).append(".visitFrame(Opcodes.F_NEW, ");
+		//			} else {
+		//				stringBuilder.append(visitname).append(".visitFrame(Opcodes.F_FULL, ");
+		//			}
+		//			stringBuilder.append(numLocal).append(NEW_OBJECT_ARRAY);
+		//			appendFrameTypes(numLocal, local);
+		//			stringBuilder.append("}, ").append(numStack).append(NEW_OBJECT_ARRAY);
+		//			appendFrameTypes(numStack, stack);
+		//			stringBuilder.append('}');
+		//			break;
+		//		case Opcodes.F_APPEND:
+		//			declareFrameTypes(numLocal, local);
+		//			stringBuilder.append(visitname).append(".visitFrame(Opcodes.F_APPEND,").append(numLocal).append(NEW_OBJECT_ARRAY);
+		//			appendFrameTypes(numLocal, local);
+		//			stringBuilder.append("}, 0, null");
+		//			break;
+		//		case Opcodes.F_CHOP:
+		//			stringBuilder.append(visitname).append(".visitFrame(Opcodes.F_CHOP,").append(numLocal).append(", null, 0, null");
+		//			break;
+		//		case Opcodes.F_SAME:
+		//			stringBuilder.append(visitname).append(".visitFrame(Opcodes.F_SAME, 0, null, 0, null");
+		//			break;
+		//		case Opcodes.F_SAME1:
+		//			declareFrameTypes(1, stack);
+		//			stringBuilder.append(visitname).append(".visitFrame(Opcodes.F_SAME1, 0, null, 1, new Object[] {");
+		//			appendFrameTypes(1, stack);
+		//			stringBuilder.append('}');
+		//			break;
+		//		default:
+		//			throw new IllegalArgumentException();
+		//		}
+		//		stringBuilder.append(");\n");
+		//		text.add(stringBuilder.toString());
 	}
 
 	@Override
@@ -786,9 +862,9 @@ public class TinyASMifier extends Printer {
 	@Override
 	public void visitLabel(final Label label) {
 		if (labelNames != null && labelNames.containsKey(label)) {
-//			text.add(new LabelHolder(label,true));
+			//			text.add(new LabelHolder(label,true));
 			stringBuilder.setLength(0);
-//			declareLabel(label);
+			//			declareLabel(label);
 			stringBuilder.append("\n");
 			stringBuilder.append(visitname).append(".visitLabel(");
 			appendLabel(label);
@@ -954,6 +1030,18 @@ public class TinyASMifier extends Printer {
 		text.add(stringBuilder.toString());
 		TinyASMifier asmifier = createASMifier(ANNOTATION_VISITOR, 0);
 		asmifier.tiny_annotation = this.tiny_annotation;
+		asmifier.tiny_methodLocals = tiny_methodLocals;
+		asmifier.tiny_methodVisitParameter = this.tiny_methodVisitParameter;
+		asmifier.tiny_methodParamTypes = this.tiny_methodParamTypes;
+		asmifier.tiny_methodSignatureParamClazzList = this.tiny_methodSignatureParamClazzList;
+		asmifier.tiny_methodSignatureTypeParameterClassList = this.tiny_methodSignatureTypeParameterClassList;
+		asmifier.tiny_methodIsStatic = this.tiny_methodIsStatic;
+		asmifier.tiny_className = this.tiny_className;
+		asmifier.tiny_referedTypes = this.tiny_referedTypes;
+		asmifier.classDefinedClassParameters = this.classDefinedClassParameters;
+		asmifier.methodUsedClassParameters = methodUsedClassParameters;
+		asmifier.classDefinedClassParameterNames = this.classDefinedClassParameterNames;
+		asmifier.classDefinedClassParameterClasses = this.classDefinedClassParameterClasses;
 		text.add(asmifier.getText());
 		text.add("}\n");
 		return asmifier;
@@ -972,7 +1060,7 @@ public class TinyASMifier extends Printer {
 	public void visitMaxs(final int maxStack, final int maxLocals) {
 		stringBuilder.setLength(0);
 		stringBuilder.append(visitname).append(".visitMaxs(").append(maxStack).append(", ").append(maxLocals).append(");\n");
-//		text.add(stringBuilder.toString());
+		//		text.add(stringBuilder.toString());
 	}
 
 	@Override
@@ -992,14 +1080,27 @@ public class TinyASMifier extends Printer {
 	 * @return a new {@link TinyASMifier} to visit the annotation values.
 	 */
 	public TinyASMifier visitAnnotation(final String descriptor, final boolean visible) {
-//		this.annotation = new Annotation();
+		//		this.annotation = new Annotation();
 		this.tiny_annotation.clazz = clazzof(descriptor);
 		this.tiny_annotation.visible = visible;
-//		text.add(this.annotation);
+		//		text.add(this.annotation);
 		TinyASMifier asmifier = createASMifier(ANNOTATION_VISITOR, 0);
-//		text.add(asmifier.getText());
+		//		text.add(asmifier.getText());
 		asmifier.tiny_annotation = this.tiny_annotation;
-//		text.add("}\n");
+		asmifier.tiny_methodLocals = tiny_methodLocals;
+		asmifier.tiny_methodVisitParameter = this.tiny_methodVisitParameter;
+		asmifier.tiny_methodParamTypes = this.tiny_methodParamTypes;
+		asmifier.tiny_methodSignatureParamClazzList = this.tiny_methodSignatureParamClazzList;
+		asmifier.tiny_methodSignatureTypeParameterClassList = this.tiny_methodSignatureTypeParameterClassList;
+		asmifier.tiny_methodIsStatic = this.tiny_methodIsStatic;
+		asmifier.tiny_className = this.tiny_className;
+
+		asmifier.tiny_referedTypes = this.tiny_referedTypes;
+		asmifier.classDefinedClassParameters = this.classDefinedClassParameters;
+		asmifier.methodUsedClassParameters = methodUsedClassParameters;
+		asmifier.classDefinedClassParameterNames = this.classDefinedClassParameterNames;
+		asmifier.classDefinedClassParameterClasses = this.classDefinedClassParameterClasses;
+		//		text.add("}\n");
 		return asmifier;
 	}
 
@@ -1052,6 +1153,19 @@ public class TinyASMifier extends Printer {
 		text.add(stringBuilder.toString());
 		TinyASMifier asmifier = createASMifier(ANNOTATION_VISITOR, 0);
 		asmifier.tiny_annotation = tiny_annotation;
+		asmifier.tiny_methodLocals = tiny_methodLocals;
+		asmifier.tiny_methodVisitParameter = this.tiny_methodVisitParameter;
+		asmifier.tiny_methodParamTypes = this.tiny_methodParamTypes;
+		asmifier.tiny_methodSignatureParamClazzList = this.tiny_methodSignatureParamClazzList;
+		asmifier.tiny_methodSignatureTypeParameterClassList = this.tiny_methodSignatureTypeParameterClassList;
+		asmifier.tiny_methodIsStatic = this.tiny_methodIsStatic;
+		asmifier.tiny_className = this.tiny_className;
+
+		asmifier.tiny_referedTypes = this.tiny_referedTypes;
+		asmifier.classDefinedClassParameters = this.classDefinedClassParameters;
+		asmifier.methodUsedClassParameters = methodUsedClassParameters;
+		asmifier.classDefinedClassParameterNames = this.classDefinedClassParameterNames;
+		asmifier.classDefinedClassParameterClasses = this.classDefinedClassParameterClasses;
 		text.add(asmifier.getText());
 		text.add("}\n");
 		return asmifier;
@@ -1065,18 +1179,18 @@ public class TinyASMifier extends Printer {
 	public void visitAttribute(final Attribute attribute) {
 		stringBuilder.setLength(0);
 		stringBuilder.append("// ATTRIBUTE ").append(attribute.type).append('\n');
-//		if (attribute instanceof ASMifiable) {
-//			if (labelNames == null) {
-//				labelNames = new HashMap<Label, String>();
-//			}
-//			stringBuilder.append("{\n");
-//			StringBuffer stringBuffer = new StringBuffer();
-////			((ASMifiable) attribute).asmify(stringBuffer, "attribute", labelNames);
-//			stringBuilder.append(stringBuffer.toString());
-//			stringBuilder.append(visitname).append(".visitAttribute(attribute);\n");
-//			stringBuilder.append("}\n");
-//		}
-//		text.add(stringBuilder.toString());
+		//		if (attribute instanceof ASMifiable) {
+		//			if (labelNames == null) {
+		//				labelNames = new HashMap<Label, String>();
+		//			}
+		//			stringBuilder.append("{\n");
+		//			StringBuffer stringBuffer = new StringBuffer();
+		////			((ASMifiable) attribute).asmify(stringBuffer, "attribute", labelNames);
+		//			stringBuilder.append(stringBuffer.toString());
+		//			stringBuilder.append(visitname).append(".visitAttribute(attribute);\n");
+		//			stringBuilder.append("}\n");
+		//		}
+		//		text.add(stringBuilder.toString());
 	}
 
 	/** Visits the end of a field, record component or method. */
@@ -1267,41 +1381,48 @@ public class TinyASMifier extends Printer {
 	}
 
 	public String appendTypeConstant(Type type, Map<String, String> referedTypes) {
+		if (type.getSort() == Type.OBJECT) {
 
-		logger.trace("clazzOf - {} ", type.getClassName());
-		if (this.classDefinedClassParameters != null && this.classDefinedClassParameters.containsKey(type.getClassName())) {
-			logger.trace("clazzOf - {} is in paramter {}", type.getClassName(), this.classDefinedClassParameters.get(type.getClassName()));
-			methodUsedClassParameters.put(type.getClassName(), this.classDefinedClassParameters.get(type.getClassName()));
+			logger.trace("clazzOf - {} ", type.getClassName());
+			if (this.classDefinedClassParameters != null && this.classDefinedClassParameters.containsKey(type.getClassName())) {
+				logger.trace("clazzOf - {} is in paramter {}", type.getClassName(), this.classDefinedClassParameters.get(type.getClassName()));
+				methodUsedClassParameters.put(type.getClassName(), this.classDefinedClassParameters.get(type.getClassName()));
+				stringBuilder.append("Type.getType(");
+				stringBuilder.append(this.classDefinedClassParameters.get(type.getClassName()));
+				stringBuilder.append(")");
+			} else if (tiny_primativeTypeMaps.containsKey(type.getInternalName())) {
+				stringBuilder.append("Type.getType(\"");
+				stringBuilder.append(tiny_primativeTypeMaps.get(type.getInternalName()));
+				stringBuilder.append("\")");
+			} else if (type.getSort() == Type.ARRAY && type.getElementType().getSort() == Type.OBJECT) {
+				stringBuilder.append("Type.getType(\"");
+				logger.trace("{} Array", type.getElementType());
+				referedTypes.put(type.getElementType().getClassName(), "");
+				stringBuilder.append(toSimpleName(type.getElementType().getClassName()) + "[].class");
+				stringBuilder.append("\")");
+			} else if (type.getSort() == Type.OBJECT) {
+				referedTypes.put(type.getClassName(), "");
+				stringBuilder.append("Type.getType(");
+				stringBuilder.append(toSimpleName(type.getClassName()) + ".class");
+				stringBuilder.append(")");
+			}
+			return "unknown.class";
+		}else {
 			stringBuilder.append("Type.getType(");
-			stringBuilder.append(this.classDefinedClassParameters.get(type.getClassName()));
+			stringBuilder.append(type.getDescriptor());
 			stringBuilder.append(")");
-		} else if (tiny_primativeTypeMaps.containsKey(type.getInternalName())) {
-			stringBuilder.append("Type.getType(\"");
-			stringBuilder.append(tiny_primativeTypeMaps.get(type.getInternalName()));
-			stringBuilder.append("\")");
-		} else if (type.getSort() == Type.ARRAY && type.getElementType().getSort() == Type.OBJECT) {
-			stringBuilder.append("Type.getType(\"");
-			logger.trace("{} Array", type.getElementType());
-			referedTypes.put(type.getElementType().getClassName(), "");
-			stringBuilder.append(toSimpleName(type.getElementType().getClassName()) + "[].class");
-			stringBuilder.append("\")");
-		} else if (type.getSort() == Type.OBJECT) {
-			referedTypes.put(type.getClassName(), "");
-			stringBuilder.append("Type.getType(");
-			stringBuilder.append(toSimpleName(type.getClassName()) + ".class");
-			stringBuilder.append(")");
+			return "unknown.class";
 		}
 
-//		Class<?> c = char[].class.isar;
-		return "unknown.class";
-//		switch (description) {
-//		case "I":
-//			return "int.class";
-//
-//		default:
-//			break;
-//		}
-//		return null;
+		//		Class<?> c = char[].class.isar;
+		//		switch (description) {
+		//		case "I":
+		//			return "int.class";
+		//
+		//		default:
+		//			break;
+		//		}
+		//		return null;
 	}
 
 	/**
@@ -1489,7 +1610,7 @@ public class TinyASMifier extends Printer {
 		} else if (labelName.length() == 0) {
 			labelName = "label" + labelNames.size() + "Of" + name;
 			labelNames.put(label, labelName);
-//			stringBuilder.append("\t\tLabel ").append(labelName).append(" = new Label();\n");
+			//			stringBuilder.append("\t\tLabel ").append(labelName).append(" = new Label();\n");
 		}
 	}
 
@@ -1595,16 +1716,16 @@ public class TinyASMifier extends Printer {
 			return toSimpleName(type.getClassName()) + ".class";
 		}
 
-//		Class<?> c = char[].class.isar;
+		//		Class<?> c = char[].class.isar;
 		return "unknown.class";
-//		switch (description) {
-//		case "I":
-//			return "int.class";
-//
-//		default:
-//			break;
-//		}
-//		return null;
+		//		switch (description) {
+		//		case "I":
+		//			return "int.class";
+		//
+		//		default:
+		//			break;
+		//		}
+		//		return null;
 	}
 
 	static String toSimpleName(String str) {
@@ -1974,6 +2095,20 @@ public class TinyASMifier extends Printer {
 		TinyASMifier asmifier = createASMifier("fieldVisitor", 0);
 		text.add(asmifier.getText());
 		asmifier.tiny_annotation = this.tiny_annotation;
+		asmifier.tiny_className = this.tiny_className;
+		asmifier.tiny_methodLocals = tiny_methodLocals;
+		asmifier.tiny_methodVisitParameter = this.tiny_methodVisitParameter;
+		asmifier.tiny_methodParamTypes = this.tiny_methodParamTypes;
+		asmifier.tiny_methodSignatureParamClazzList = this.tiny_methodSignatureParamClazzList;
+		asmifier.tiny_methodSignatureTypeParameterClassList = this.tiny_methodSignatureTypeParameterClassList;
+		asmifier.tiny_methodIsStatic = this.tiny_methodIsStatic;
+		asmifier.tiny_className = this.tiny_className;
+
+		asmifier.tiny_referedTypes = this.tiny_referedTypes;
+		asmifier.classDefinedClassParameters = this.classDefinedClassParameters;
+		asmifier.methodUsedClassParameters = methodUsedClassParameters;
+		asmifier.classDefinedClassParameterNames = this.classDefinedClassParameterNames;
+		asmifier.classDefinedClassParameterClasses = this.classDefinedClassParameterClasses;
 		// text.add("}\n");
 		return asmifier;
 	}
@@ -2094,7 +2229,7 @@ public class TinyASMifier extends Printer {
 			}
 		}
 
-//		tiny_methodSignatureParamClazzList = null;
+		//		tiny_methodSignatureParamClazzList = null;
 
 		tiny_textMethods.add(stringBuilder.toString());
 		stringBuilder.setLength(0);
@@ -2346,7 +2481,7 @@ public class TinyASMifier extends Printer {
 				localVar = tiny_methodLocals.accessStore(var, 2);
 				break;
 			case FSTORE: // 56; // -
-				localVar = tiny_methodLocals.accessStore(var, 2);
+				localVar = tiny_methodLocals.accessStore(var, 1);
 				break;
 			case DSTORE: // 57; // -
 				localVar = tiny_methodLocals.accessStore(var, 2);
@@ -2488,7 +2623,7 @@ public class TinyASMifier extends Printer {
 		case CALOAD: // 52; // -
 		case SALOAD: // 53; // -
 			stringBuilder.append(visitname).append(".ARRAYLOAD();\n");
-//			stringBuilder.append(visitname).append(".visitInsn(").append(OPCODES[opcode]).append(");\n");
+			//			stringBuilder.append(visitname).append(".visitInsn(").append(OPCODES[opcode]).append(");\n");
 			break;
 
 		case IASTORE: // 79; // visitInsn
@@ -2500,7 +2635,7 @@ public class TinyASMifier extends Printer {
 		case CASTORE: // 85; // -
 		case SASTORE: // 86; // -
 			stringBuilder.append(visitname).append(".ARRAYSTORE();\n");
-//			stringBuilder.append(visitname).append(".visitInsn(").append(OPCODES[opcode]).append(");\n");
+			//			stringBuilder.append(visitname).append(".visitInsn(").append(OPCODES[opcode]).append(");\n");
 			break;
 		case POP: // 87; // -
 		case POP2: // 88; // -
@@ -2813,7 +2948,7 @@ public class TinyASMifier extends Printer {
 		int lastStackIndex = -1;
 		for (int i = 0; i < tiny_methodLocals.size(); i++) {
 			int stackIndex = tiny_methodLocals.locals.get(i);
-//			sb.append(stackIndex);
+			//			sb.append(stackIndex);
 			if (stackIndex > 0 && stackIndex < lastStackIndex) {
 				good = false;
 				break;
@@ -2825,7 +2960,7 @@ public class TinyASMifier extends Printer {
 			for (int i = 0; i < tiny_methodLocals.size(); i++) {
 				int stackIndex = tiny_methodLocals.locals.get(i);
 
-//				sb.append(stackIndex);
+				//				sb.append(stackIndex);
 				if (stackIndex >= 0) {
 					Var var = tiny_methodLocals.stack.get(stackIndex);
 					if (logger.isDebugEnabled()) {
@@ -2936,7 +3071,7 @@ public class TinyASMifier extends Printer {
 				if (!used) {
 					stringBuilder.append("\t\tLabel ").append(labelName).append(" = new Label();\n");
 				}
-//			declareLabel(label);
+				//			declareLabel(label);
 				stringBuilder.append("\n");
 				stringBuilder.append(visitname).append(".visitLabel(");
 				appendLabel(label);
@@ -3041,12 +3176,12 @@ public class TinyASMifier extends Printer {
 		List<String> keys = new ArrayList<>();
 		List<Object> values = new ArrayList<>();
 
-//		cw.field(ACC_PRIVATE, Annotation.of(TestAnnotation.class), "annotation", Clazz.of(String.class));
-//		cw.field(ACC_PRIVATE, Annotation.of(TestAnnotation.class, "value"), "annotationWithDefaultValue", Clazz.of(String.class));
-//		cw.field(ACC_PRIVATE, Annotation.of(TestAnnotation.class, new String[] { "value", "name" }, new Object[] { "value", "name" }),
-//				"annotationWithDefaultValueAndNamedValue", Clazz.of(String.class));
-//		cw.field(ACC_PRIVATE, Annotation.of(TestAnnotation.class, new String[] { "name", "secondName" }, new Object[] { "name", "secondName" }),
-//				"annotationWithDefaultValueAndNamedValue2", Clazz.of(String.class));
+		//		cw.field(ACC_PRIVATE, Annotation.of(TestAnnotation.class), "annotation", Clazz.of(String.class));
+		//		cw.field(ACC_PRIVATE, Annotation.of(TestAnnotation.class, "value"), "annotationWithDefaultValue", Clazz.of(String.class));
+		//		cw.field(ACC_PRIVATE, Annotation.of(TestAnnotation.class, new String[] { "value", "name" }, new Object[] { "value", "name" }),
+		//				"annotationWithDefaultValueAndNamedValue", Clazz.of(String.class));
+		//		cw.field(ACC_PRIVATE, Annotation.of(TestAnnotation.class, new String[] { "name", "secondName" }, new Object[] { "name", "secondName" }),
+		//				"annotationWithDefaultValueAndNamedValue2", Clazz.of(String.class));
 		@Override
 		public String toString() {
 			if (clazz != null) {

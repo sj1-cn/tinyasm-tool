@@ -22,7 +22,7 @@ public class ClassSignatureTest {
 	}
 
 	@Test
-	public void test() {
+	public void testClassObject() {
 		String signature = "Ljava/lang/Class<*>;";
 		Map<String, String> tiny_referedTypes = new HashMap<String, String>();
 
@@ -34,7 +34,7 @@ public class ClassSignatureTest {
 	}
 
 	@Test
-	public void test2() {
+	public void testClassT() {
 		String signature = "Ljava/lang/Class<TT;>;";
 		Map<String, String> tiny_referedTypes = new HashMap<String, String>();
 
@@ -42,14 +42,14 @@ public class ClassSignatureTest {
 		ClassSignature signatureVistor = new ClassSignature(Opcodes.ASM8, tiny_referedTypes);
 		sr.accept(signatureVistor);
 //		logger.trace("visitLocalVariable({} {}", name, signatureVistor.superClass);
-		assertEquals("Clazz.of(Class.class,Clazz.typeArgument(Clazz.typeVariableOf(\"T\")))", signatureVistor.superClass.toString());
+		assertEquals("Clazz.of(Class.class, Clazz.typeArgument(Clazz.typeVariableOf(\"T\")))", signatureVistor.superClass.toString());
 
 	}
 
 //	
 
 	@Test
-	public void test3() {
+	public void testMethodTArrayTArray() {
 		String signature = "<T:Ljava/lang/Object;>([TT;)[TT;";
 		Map<String, String> tiny_referedTypes = new HashMap<String, String>();
 
@@ -57,15 +57,15 @@ public class ClassSignatureTest {
 		ClassSignature signatureVistor = new ClassSignature(Opcodes.ASM8, tiny_referedTypes);
 		sr.accept(signatureVistor);
 //		logger.trace("visitLocalVariable({} {}", name, signatureVistor.superClass);
-		assertEquals("[\"T\",Clazz.of(Object.class)]", signatureVistor.typeParameterClassList.toString());
-		assertEquals("Clazz.typeVariableOf(\"T\",true)", signatureVistor.paramsClassList.get(0).toString());
-		assertEquals("Clazz.typeVariableOf(\"T\",true)", signatureVistor.returnClass.toString());
+		assertEquals("[\"T\", Clazz.of(Object.class)]", signatureVistor.typeParameterClassList.toString());
+		assertEquals("Clazz.typeVariableOf(\"T\", true)", signatureVistor.paramsClassList.get(0).toString());
+		assertEquals("Clazz.typeVariableOf(\"T\", true)", signatureVistor.returnClass.toString());
 
 	}
 
 
 	@Test
-	public void test5() {
+	public void testMethodCollectionObjectZ() {
 		String signature = "(Ljava/util/Collection<*>;)Z";
 		Map<String, String> tiny_referedTypes = new HashMap<String, String>();
 
@@ -82,7 +82,7 @@ public class ClassSignatureTest {
 	
 
 	@Test
-	public void test_basetypessssss() {
+	public void testMethodCollectionExtendsZ() {
 		String signature = "(ILjava/util/Collection<+Lcc1sj/tinyasm/hero/helperclass/PojoClassSample;>;)Z";
 		Map<String, String> tiny_referedTypes = new HashMap<String, String>();
 
@@ -93,7 +93,7 @@ public class ClassSignatureTest {
 		assertEquals("Clazz.of(boolean.class)", signatureVistor.returnClass.toString());
 		assertEquals("[]", signatureVistor.typeParameterClassList.toString());
 		assertEquals("Clazz.of(int.class)", signatureVistor.paramsClassList.get(0).toString());
-		assertEquals("Clazz.of(Collection.class,Clazz.typeArgument('+',PojoClassSample.class))", signatureVistor.paramsClassList.get(1).toString());
+		assertEquals("Clazz.of(Collection.class, Clazz.typeArgument('+', PojoClassSample.class))", signatureVistor.paramsClassList.get(1).toString());
 		
 //		
 //		assertEquals("Z", classSignaturewwww.returnClazz.toString());
@@ -109,7 +109,7 @@ public class ClassSignatureTest {
 	
 
 	@Test
-	public void test_basetypessssss_() {
+	public void testMethodConsumerTV() {
 		String signature = "(Ljava/util/function/Consumer<-TE;>;)V";
 		Map<String, String> tiny_referedTypes = new HashMap<String, String>();
 
@@ -119,7 +119,7 @@ public class ClassSignatureTest {
 //		logger.trace("visitLocalVariable({} {}", name, signatureVistor.superClass);
 		assertEquals("Clazz.of(void.class)", signatureVistor.returnClass.toString());
 		assertEquals("[]", signatureVistor.typeParameterClassList.toString());
-		assertEquals("Clazz.of(Consumer.class,Clazz.typeArgument('-',Clazz.typeVariableOf(\"E\")))", signatureVistor.paramsClassList.get(0).toString());
+		assertEquals("Clazz.of(Consumer.class, Clazz.typeArgument('-', Clazz.typeVariableOf(\"E\")))", signatureVistor.paramsClassList.get(0).toString());
 
 	}
 

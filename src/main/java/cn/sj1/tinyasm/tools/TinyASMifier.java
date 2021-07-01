@@ -1957,12 +1957,12 @@ public class TinyASMifier extends Printer {
 						params.add("\"" + (String) classDefinedClassParameterClasses.get(i) + "\"");
 					}
 				}
-				text.add("//\tpublic static byte[] dump() throws Exception {\n");
+				text.add("//\tpublic static byte[] dump() {\n");
 				text.add("//\t\treturn new " + className + "().build(" + String.join(",", params) + ");\n");
 				text.add("//\t}\n\n");
 			} else {
 				params.add("\"" + name.replace('/', '.') + "\"");
-				text.add("\tpublic static byte[] dump() throws Exception {\n");
+				text.add("\tpublic static byte[] dump() {\n");
 				text.add("\t\treturn new " + className + "().build(" + String.join(",", params) + ");\n");
 				text.add("\t}\n\n");
 			}
@@ -1984,7 +1984,7 @@ public class TinyASMifier extends Printer {
 				params.add(classDefinedClassParameterNames.get(i));
 			}
 
-			text.add("\tpublic byte[] build(" + String.join(",", paramDefines) + ") throws Exception {\n");
+			text.add("\tpublic byte[] build(" + String.join(",", paramDefines) + ")  {\n");
 		}
 
 		// text.add(" ClassBody classBody =

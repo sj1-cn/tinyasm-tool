@@ -10,7 +10,7 @@ info:
     ApplicantStandardResume 基本与Resume一致，包含部分Resume中没有的字段。在实际处理中可以直接按照Resume处理ApplicantStandardResume
   version: 1.0.0.alpha9
 servers:
-  - url: https://transmitter.nadileaf.com/v1/{tenantId}/
+  - url: https://transmitter.nadileaf.com/v1/{tenantId}
     variables:
       tenantId:
         default: 'boe-test'

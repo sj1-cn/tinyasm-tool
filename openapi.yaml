@@ -2,7 +2,7 @@ openapi: 3.0.1
 info:
   title: Mesoor Central Storage Defination
   description: |
-    Mesoor中央存储字段<br>
+    Mesoor中央存储字段<br>测试
     共识:<br>
     Resume stage3 起，后续stage在前一stage上追加字段。如果你使用Resume stage5，默认包含stage3 stage4的所有字段，并且已经经过处理<br>
     知识图谱链接公司/学校不体现在stage3，由下游业务规则自行分析(xxxLinked 字段)<br>
